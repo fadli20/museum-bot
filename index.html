@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🏛️ Museum Guide Robot</title>
+
+    <!-- MQTT Library -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js">
+    </script>
+
+    <style>
+        /* ==========================================
+                   RESET & BASE
+                   ========================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a1a;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* ==========================================
+                   MAIN CONTAINER
+                   ========================================== */
+        #app {
+            width: 100vw;
+            height: 100vh;
+            max-width: 1200px;
+            max-height: 900px;
+            background: linear-gradient(145deg, #12122a, #1a1a3e);
+            border-radius: 30px;
+            padding: 25px 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ==========================================
+                   SECTIONS – Hidden by default
+                   ========================================== */
+        .section {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            animation: fadeIn 0.6s ease;
+            position: relative;
+        }
+
+        .section.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ==========================================
+                   HEADER (common)
+                   ========================================== */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+
+        .top-bar .title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #e94560;
+            letter-spacing: 0.5px;
+        }
+
+        .top-bar .title span {
+            color: #aaa;
+            font-weight: 300;
+        }
+
+        .top-bar .status-badge {
+            background: rgba(233, 69, 96, 0.15);
+            color: #e94560;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(233, 69, 96, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .top-bar .status-badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #e94560;
+            display: inline-block;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+        }
+
+        .top-bar .admin-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+
+        .top-bar .admin-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        /* ==========================================
+                   SECTION 1: WELCOME / IDLE
+                   ========================================== */
+        #welcome-section .welcome-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 15px;
+        }
+
+        #welcome-section .robot-face {
+            font-size: 5rem;
+            line-height: 1;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-12px);
+            }
+        }
+
+        #welcome-section .robot-face .eyes {
+            display: inline-block;
+            animation: blink 4s infinite;
+        }
+
+        @keyframes blink {
+            0%,
+            45%,
+            55%,
+            100% {
+                transform: scaleY(1);
+            }
+            50% {
+                transform: scaleY(0.1);
+            }
+        }
+
+        #welcome-section h2 {
+            font-size: 2.2rem;
+            color: #fff;
+            font-weight: 300;
+        }
+
+        #welcome-section h2 strong {
+            color: #e94560;
+            font-weight: 700;
+        }
+
+        #welcome-section .sub {
+            color: #888;
+            font-size: 1rem;
+            max-width: 500px;
+        }
+
+        .sensor-row {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .sensor-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 18px 28px;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .sensor-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .sensor-card .label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sensor-card .value.temp {
+            color: #ff6b6b;
+        }
+        .sensor-card .value.humid {
+            color: #4ecdc4;
+        }
+
+        .sensor-alert {
+            margin-top: 15px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            display: none;
+            font-weight: 600;
+        }
+
+        .sensor-alert.danger {
+            display: block;
+            background: rgba(255, 50, 50, 0.15);
+            border: 1px solid rgba(255, 50, 50, 0.3);
+            color: #ff6b6b;
+        }
+
+        .sensor-alert.warning {
+            display: block;
+            background: rgba(255, 200, 50, 0.12);
+            border: 1px solid rgba(255, 200, 50, 0.25);
+            color: #ffd93d;
+        }
+
+        /* ==========================================
+                   SECTION 2: DRIVING
+                   ========================================== */
+        #driving-section .driving-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            text-align: center;
+        }
+
+        #driving-section .driving-icon {
+            font-size: 4rem;
+            animation: pulse 1.2s infinite;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.08);
+                opacity: 0.7;
+            }
+        }
+
+        #driving-section h2 {
+            font-size: 1.8rem;
+            color: #ffd93d;
+        }
+
+        #driving-section .coord-display {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 15px 35px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.3rem;
+            color: #4ecdc4;
+        }
+
+        #driving-section .progress-wrap {
+            width: 80%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 30px;
+            height: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        #driving-section .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #e94560, #ffd93d);
+            border-radius: 30px;
+            transition: width 0.4s ease;
+        }
+
+        #driving-section .eta-text {
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        /* ==========================================
+                   SECTION 3: PRESENTING
+                   ========================================== */
+        #presenting-section .presenting-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        #presenting-section .greeting-box {
+            background: rgba(233, 69, 96, 0.10);
+            border: 1px solid rgba(233, 69, 96, 0.2);
+            border-radius: 16px;
+            padding: 18px 24px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #e94560;
+            animation: pulse 2s infinite;
+        }
+
+        #presenting-section .artifact-display {
+            display: none;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 20px 25px;
+            gap: 20px;
+            flex: 1;
+            flex-direction: row;
+            align-items: flex-start;
+        }
+
+        #presenting-section .artifact-display.active {
+            display: flex;
+        }
+
+        #presenting-section .artifact-display .image-area {
+            flex: 0 0 180px;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+        }
+
+        #presenting-section .artifact-display .image-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #presenting-section .artifact-display .info-area {
+            flex: 1;
+        }
+
+        #presenting-section .artifact-display .info-area h3 {
+            font-size: 1.6rem;
+            color: #e94560;
+            margin-bottom: 6px;
+        }
+
+        #presenting-section .artifact-display .info-area .meta {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        #presenting-section .artifact-display .info-area .desc {
+            color: #ccc;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        #presenting-section .artifact-display .info-area .lang-indicator {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.08);
+            padding: 4px 14px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* Language buttons */
+        .lang-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .lang-buttons button {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+
+        .lang-buttons button:hover {
+            background: rgba(233, 69, 96, 0.2);
+            border-color: #e94560;
+            color: #fff;
+        }
+
+        .lang-buttons button.active {
+            background: rgba(233, 69, 96, 0.25);
+            border-color: #e94560;
+            color: #fff;
+        }
+
+        /* Action buttons */
+        .action-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .action-row button {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            padding: 10px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .action-row button:hover {
+            background: rgba(233, 69, 96, 0.15);
+            border-color: #e94560;
+            color: #fff;
+        }
+
+        .action-row button.primary {
+            background: #e94560;
+            border-color: #e94560;
+            color: #fff;
+        }
+
+        .action-row button.primary:hover {
+            background: #c73652;
+            border-color: #c73652;
+        }
+
+        .action-row button.secondary {
+            background: rgba(78, 205, 196, 0.12);
+            border-color: #4ecdc4;
+            color: #4ecdc4;
+        }
+
+        .action-row button.secondary:hover {
+            background: rgba(78, 205, 196, 0.2);
+        }
+
+        /* ==========================================
+                   SECTION 4: ADMIN
+                   ========================================== */
+        #admin-section .admin-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        #admin-section .admin-login {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            gap: 20px;
+        }
+
+        #admin-section .admin-login.hidden {
+            display: none;
+        }
+
+        #admin-section .admin-login input {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 1rem;
+            width: 280px;
+            text-align: center;
+        }
+
+        #admin-section .admin-login input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+
+        #admin-section .admin-panel {
+            display: none;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        #admin-section .admin-panel.active {
+            display: flex;
+        }
+
+        #admin-section .admin-panel h2 {
+            color: #e94560;
+            font-size: 1.5rem;
+        }
+
+        #admin-section .admin-panel .setting-group {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 18px 22px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #admin-section .admin-panel .setting-group label {
+            color: #aaa;
+            font-size: 0.9rem;
+            min-width: 100px;
+        }
+
+        #admin-section .admin-panel .setting-group input[type="range"] {
+            flex: 1;
+            min-width: 150px;
+            accent-color: #e94560;
+            background: rgba(255, 255, 255, 0.06);
+            height: 4px;
+            border-radius: 4px;
+        }
+
+        #admin-section .admin-panel .setting-group .val {
+            color: #4ecdc4;
+            font-weight: 600;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        #admin-section .admin-panel .setting-group button {
+            background: rgba(233, 69, 96, 0.15);
+            border: 1px solid rgba(233, 69, 96, 0.2);
+            color: #e94560;
+            padding: 6px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #admin-section .admin-panel .setting-group button:hover {
+            background: rgba(233, 69, 96, 0.25);
+        }
+
+        /* ==========================================
+                   MQTT STATUS
+                   ========================================== */
+        .mqtt-status {
+            position: absolute;
+            bottom: 15px;
+            right: 25px;
+            font-size: 0.7rem;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mqtt-status .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .mqtt-status .dot.online {
+            background: #4ecdc4;
+        }
+        .mqtt-status .dot.offline {
+            background: #e94560;
+        }
+
+        /* ==========================================
+                   SCROLLBAR
+                   ========================================== */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        /* ==========================================
+                   RESPONSIVE
+                   ========================================== */
+        @media (max-width: 700px) {
+            #app {
+                padding: 15px;
+                border-radius: 0;
+                max-height: none;
+                height: 100vh;
+            }
+
+            #presenting-section .artifact-display {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #presenting-section .artifact-display .image-area {
+                flex: 0 0 140px;
+                height: 140px;
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .top-bar .title {
+                font-size: 1rem;
+            }
+
+            #welcome-section h2 {
+                font-size: 1.5rem;
+            }
+
+            .sensor-row {
+                gap: 12px;
+            }
+
+            .sensor-card {
+                padding: 12px 18px;
+                min-width: 80px;
+            }
+
+            .sensor-card .value {
+                font-size: 1.4rem;
+            }
+
+            #admin-section .admin-panel .setting-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+
+        <!-- ==========================================
+        TOP BAR
+        ========================================== -->
+        <div class="top-bar">
+            <div class="title">🏛️ Museum <span>Guide</span></div>
+            <div class="status-badge">
+                <span class="dot"></span>
+                <span id="stateLabel">Idle</span>
+            </div>
+            <button class="admin-btn" id="adminToggleBtn">⚙️ Admin</button>
+        </div>
+
+        <!-- ==========================================
+        SECTION 1: WELCOME / IDLE
+        ========================================== -->
+        <div id="welcome-section" class="section active">
+            <div class="welcome-content">
+                <div class="robot-face">
+                    <span class="eyes">👀</span>
+                    <span>🤖</span>
+                </div>
+                <h2>Welcome to the <strong>Museum</strong></h2>
+                <p class="sub">I'm your autonomous guide. I'll detect crowds, move to them, and present artifacts.</p>
+
+                <div class="sensor-row">
+                    <div class="sensor-card">
+                        <div class="value temp" id="tempDisplay">--</div>
+                        <div class="label">🌡️ Temperature</div>
+                    </div>
+                    <div class="sensor-card">
+                        <div class="value humid" id="humidDisplay">--</div>
+                        <div class="label">💧 Humidity</div>
+                    </div>
+                    <div class="sensor-card">
+                        <div class="value" id="crowdCountDisplay" style="color:#ffd93d;">0</div>
+                        <div class="label">👥 People Detected</div>
+                    </div>
+                </div>
+
+                <div id="sensorAlert" class="sensor-alert"></div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+        SECTION 2: DRIVING
+        ========================================== -->
+        <div id="driving-section" class="section">
+            <div class="driving-content">
+                <div class="driving-icon">🚗</div>
+                <h2>Moving to Crowd</h2>
+                <div class="coord-display" id="coordDisplay">Target: (--, --)</div>
+                <div class="progress-wrap">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="eta-text" id="etaDisplay">⏱️ ETA: -- s</div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+        SECTION 3: PRESENTING
+        ========================================== -->
+        <div id="presenting-section" class="section">
+            <div class="presenting-content">
+
+                <div class="greeting-box" id="greetingBox">
+                    👋 Hello! Welcome to the museum!
+                </div>
+
+                <div class="artifact-display" id="artifactDisplay">
+                    <div class="image-area" id="artifactImage">
+                        🏺
+                    </div>
+                    <div class="info-area">
+                        <h3 id="artifactName">Artifact Name</h3>
+                        <div class="meta" id="artifactMeta">Origin • Year • Material</div>
+                        <div class="desc" id="artifactDesc">Description goes here.</div>
+                        <div class="lang-indicator" id="langIndicator">🔊 Speaking: English</div>
+                        <div class="lang-buttons">
+                            <button data-lang="ms">🇲🇾 Bahasa Melayu</button>
+                            <button data-lang="en" class="active">🇬🇧 English</button>
+                            <button data-lang="fr">🇫🇷 Français</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <button class="secondary" id="replayBtn">🔁 Replay Info</button>
+                    <button class="primary" id="doneBtn">✅ Done / Finish</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ==========================================
+        SECTION 4: ADMIN
+        ========================================== -->
+        <div id="admin-section" class="section">
+            <div class="admin-content">
+
+                <!-- Login -->
+                <div class="admin-login" id="adminLogin">
+                    <h2 style="color:#e94560;">🔐 Admin Login</h2>
+                    <input type="password" id="adminPassword" placeholder="Enter password..." />
+                    <button style="background:#e94560;color:#fff;border:none;padding:10px 30px;border-radius:30px;cursor:pointer;font-size:1rem;" id="adminLoginBtn">Login</button>
+                    <span style="color:#888;font-size:0.8rem;" id="adminLoginError"></span>
+                </div>
+
+                <!-- Panel -->
+                <div class="admin-panel" id="adminPanel">
+                    <h2>⚙️ Robot Configuration</h2>
+
+                    <div class="setting-group">
+                        <label>Detection Range</label>
+                        <input type="range" id="minRangeSlider" min="0.1" max="5.0" step="0.1" value="0.5" />
+                        <span class="val" id="minRangeVal">0.5</span>
+                        <span style="color:#666;">to</span>
+                        <input type="range" id="maxRangeSlider" min="0.5" max="10.0" step="0.5" value="5.0" />
+                        <span class="val" id="maxRangeVal">5.0</span>
+                        <button id="applyRangeBtn">Apply</button>
+                    </div>
+
+                    <div class="setting-group">
+                        <label>Movement Speed</label>
+                        <input type="range" id="speedSlider" min="0.1" max="1.0" step="0.05" value="0.5" />
+                        <span class="val" id="speedVal">0.5</span>
+                        <button id="applySpeedBtn">Apply</button>
+                    </div>
+
+                    <div class="setting-group">
+                        <label>Robot State</label>
+                        <span style="color:#4ecdc4;" id="adminStateLabel">Idle</span>
+                        <button id="adminResetBtn">🔄 Reset Robot</button>
+                    </div>
+
+                    <button id="adminLogoutBtn" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#888;padding:8px 20px;border-radius:20px;cursor:pointer;align-self:flex-start;">🚪 Logout</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ==========================================
+        MQTT STATUS
+        ========================================== -->
+        <div class="mqtt-status">
+            <span class="dot offline" id="mqttDot"></span>
+            <span id="mqttLabel">MQTT: Disconnected</span>
+        </div>
+
+    </div>
+
+    <!-- ==========================================
+    JAVASCRIPT
+    ========================================== -->
+    <script>
+        (function() {
+
+            'use strict';
+
+            // ==========================================
+            // CONFIGURATION
+            // ==========================================
+            const CONFIG = {
+                // HiveMQ Free Broker (WebSocket)
+                mqttBroker: 'wss://broker.hivemq.com:8884/mqtt',
+                // Topics
+                topicArtifact: 'museum/artifact',
+                topicWelcome: 'museum/welcome',
+                topicSensor: 'museum/sensor',
+                topicCrowd: 'museum/crowd',
+                topicState: 'museum/state',
+                topicRobotPos: 'museum/robot_position',
+                // Admin password (for school project)
+                adminPassword: 'museum2025'
+            };
+
+            // ==========================================
+            // STATE
+            // ==========================================
+            let currentState = 'idle'; // idle | driving | presenting
+            let artifactData = null;
+            let isSpeaking = false;
+            let speechQueue = [];
+            let currentLangIndex = 0;
+            const LANGUAGES = [
+                { code: 'ms', name: 'Bahasa Melayu', label: '🇲🇾' },
+                { code: 'en', name: 'English', label: '🇬🇧' },
+                { code: 'fr', name: 'Français', label: '🇫🇷' }
+            ];
+
+            // DOM refs
+            const sections = {
+                welcome: document.getElementById('welcome-section'),
+                driving: document.getElementById('driving-section'),
+                presenting: document.getElementById('presenting-section'),
+                admin: document.getElementById('admin-section'),
+            };
+
+            const stateLabel = document.getElementById('stateLabel');
+            const tempDisplay = document.getElementById('tempDisplay');
+            const humidDisplay = document.getElementById('humidDisplay');
+            const crowdCountDisplay = document.getElementById('crowdCountDisplay');
+            const sensorAlert = document.getElementById('sensorAlert');
+            const coordDisplay = document.getElementById('coordDisplay');
+            const progressFill = document.getElementById('progressFill');
+            const etaDisplay = document.getElementById('etaDisplay');
+            const greetingBox = document.getElementById('greetingBox');
+            const artifactDisplay = document.getElementById('artifactDisplay');
+            const artifactImage = document.getElementById('artifactImage');
+            const artifactName = document.getElementById('artifactName');
+            const artifactMeta = document.getElementById('artifactMeta');
+            const artifactDesc = document.getElementById('artifactDesc');
+            const langIndicator = document.getElementById('langIndicator');
+            const langButtons = document.querySelectorAll('.lang-buttons button');
+            const replayBtn = document.getElementById('replayBtn');
+            const doneBtn = document.getElementById('doneBtn');
+            const adminToggleBtn = document.getElementById('adminToggleBtn');
+            const adminLogin = document.getElementById('adminLogin');
+            const adminPanel = document.getElementById('adminPanel');
+            const adminPassword = document.getElementById('adminPassword');
+            const adminLoginBtn = document.getElementById('adminLoginBtn');
+            const adminLoginError = document.getElementById('adminLoginError');
+            const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+            const adminStateLabel = document.getElementById('adminStateLabel');
+            const minRangeSlider = document.getElementById('minRangeSlider');
+            const maxRangeSlider = document.getElementById('maxRangeSlider');
+            const minRangeVal = document.getElementById('minRangeVal');
+            const maxRangeVal = document.getElementById('maxRangeVal');
+            const speedSlider = document.getElementById('speedSlider');
+            const speedVal = document.getElementById('speedVal');
+            const applyRangeBtn = document.getElementById('applyRangeBtn');
+            const applySpeedBtn = document.getElementById('applySpeedBtn');
+            const adminResetBtn = document.getElementById('adminResetBtn');
+            const mqttDot = document.getElementById('mqttDot');
+            const mqttLabel = document.getElementById('mqttLabel');
+
+            // ==========================================
+            // MQTT CLIENT
+            // ==========================================
+            let mqttClient = null;
+            let mqttConnected = false;
+
+            function connectMQTT() {
+                try {
+                    mqttClient = mqtt.connect(CONFIG.mqttBroker, {
+                        keepalive: 60,
+                        reconnectPeriod: 3000,
+                    });
+
+                    mqttClient.on('connect', function() {
+                        console.log('✅ MQTT connected');
+                        mqttConnected = true;
+                        mqttDot.className = 'dot online';
+                        mqttLabel.textContent = 'MQTT: Connected';
+
+                        // Subscribe to topics
+                        mqttClient.subscribe(CONFIG.topicArtifact);
+                        mqttClient.subscribe(CONFIG.topicWelcome);
+                        mqttClient.subscribe(CONFIG.topicSensor);
+                        mqttClient.subscribe(CONFIG.topicCrowd);
+                        mqttClient.subscribe(CONFIG.topicState);
+                        mqttClient.subscribe(CONFIG.topicRobotPos);
+                        console.log('📡 Subscribed to all topics');
+                    });
+
+                    mqttClient.on('message', function(topic, message) {
+                        const payload = message.toString();
+                        console.log(`📩 MQTT: ${topic} → ${payload}`);
+                        handleMqttMessage(topic, payload);
+                    });
+
+                    mqttClient.on('error', function(err) {
+                        console.error('❌ MQTT error:', err);
+                        mqttDot.className = 'dot offline';
+                        mqttLabel.textContent = 'MQTT: Error';
+                    });
+
+                    mqttClient.on('close', function() {
+                        console.warn('⚠️ MQTT disconnected');
+                        mqttConnected = false;
+                        mqttDot.className = 'dot offline';
+                        mqttLabel.textContent = 'MQTT: Disconnected';
+                    });
+
+                } catch (e) {
+                    console.error('❌ MQTT init error:', e);
+                }
+            }
+
+            // ==========================================
+            // MQTT MESSAGE HANDLER
+            // ==========================================
+            function handleMqttMessage(topic, payload) {
+                try {
+                    const data = JSON.parse(payload);
+
+                    switch (topic) {
+                        case CONFIG.topicArtifact:
+                            handleArtifact(data);
+                            break;
+                        case CONFIG.topicWelcome:
+                            handleWelcome(data);
+                            break;
+                        case CONFIG.topicSensor:
+                            handleSensor(data);
+                            break;
+                        case CONFIG.topicCrowd:
+                            handleCrowd(data);
+                            break;
+                        case CONFIG.topicState:
+                            handleState(data);
+                            break;
+                        case CONFIG.topicRobotPos:
+                            handleRobotPos(data);
+                            break;
+                        default:
+                            console.log('📬 Unhandled topic:', topic);
+                    }
+                } catch (e) {
+                    console.warn('⚠️ Could not parse MQTT payload:', payload);
+                }
+            }
+
+            // ==========================================
+            // HANDLERS
+            // ==========================================
+
+            function handleArtifact(data) {
+                console.log('🏺 Artifact detected:', data);
+                artifactData = data;
+                // Switch to presenting if not already
+                if (currentState !== 'presenting') {
+                    switchSection('presenting');
+                }
+                showArtifact(data);
+                // Auto-speak in 3 languages
+                speakArtifactInLanguages(data);
+            }
+
+            function handleWelcome(data) {
+                console.log('👋 Welcome trigger:', data);
+                // Show greeting in presenting section
+                if (data.message) {
+                    greetingBox.textContent = '👋 ' + data.message;
+                }
+                // Switch to presenting
+                switchSection('presenting');
+            }
+
+            function handleSensor(data) {
+                console.log('🌡️ Sensor data:', data);
+                if (data.temperature !== undefined) {
+                    tempDisplay.textContent = data.temperature.toFixed(1) + '°C';
+                }
+                if (data.humidity !== undefined) {
+                    humidDisplay.textContent = data.humidity.toFixed(1) + '%';
+                }
+                checkSensorAlert(data);
+            }
+
+            function handleCrowd(data) {
+                console.log('👥 Crowd data:', data);
+                if (data.count !== undefined) {
+                    crowdCountDisplay.textContent = data.count;
+                }
+                // If crowd detected and robot is moving, switch to driving
+                if (data.count >= 2 && data.moving === true) {
+                    switchSection('driving');
+                    if (data.target_x !== undefined && data.target_y !== undefined) {
+                        coordDisplay.textContent = `Target: (${data.target_x.toFixed(1)}, ${data.target_y.toFixed(1)})`;
+                    }
+                    if (data.progress !== undefined) {
+                        progressFill.style.width = Math.min(100, data.progress * 100) + '%';
+                    }
+                    if (data.eta !== undefined) {
+                        etaDisplay.textContent = `⏱️ ETA: ${data.eta.toFixed(1)} s`;
+                    }
+                }
+                // If no crowd, back to idle
+                if (data.count === 0 && currentState === 'idle') {
+                    // stay idle
+                }
+            }
+
+            function handleState(data) {
+                console.log('📊 Robot state:', data);
+                if (data.state) {
+                    stateLabel.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
+                    adminStateLabel.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
+                }
+                // Auto-switch based on state
+                if (data.state === 'idle') {
+                    switchSection('welcome');
+                } else if (data.state === 'moving' || data.state === 'driving') {
+                    switchSection('driving');
+                } else if (data.state === 'presenting' || data.state === 'greeting') {
+                    switchSection('presenting');
+                }
+            }
+
+            function handleRobotPos(data) {
+                // Update driving coordinates if in driving mode
+                if (currentState === 'driving') {
+                    if (data.target_x !== undefined && data.target_y !== undefined) {
+                        coordDisplay.textContent = `Target: (${data.target_x.toFixed(1)}, ${data.target_y.toFixed(1)})`;
+                    }
+                    if (data.progress !== undefined) {
+                        progressFill.style.width = Math.min(100, data.progress * 100) + '%';
+                    }
+                    if (data.eta !== undefined) {
+                        etaDisplay.textContent = `⏱️ ETA: ${data.eta.toFixed(1)} s`;
+                    }
+                }
+            }
+
+            // ==========================================
+            // SENSOR ALERT
+            // ==========================================
+            function checkSensorAlert(data) {
+                let alertMsg = '';
+                let alertClass = '';
+
+                if (data.temperature !== undefined) {
+                    if (data.temperature > 30) {
+                        alertMsg = '⚠️ Temperature is too HIGH! Artifacts may be at risk.';
+                        alertClass = 'danger';
+                    } else if (data.temperature < 15) {
+                        alertMsg = '⚠️ Temperature is too LOW! Artifacts may be at risk.';
+                        alertClass = 'danger';
+                    }
+                }
+
+                if (data.humidity !== undefined) {
+                    if (data.humidity > 70) {
+                        alertMsg = alertMsg || '⚠️ Humidity is too HIGH! Artifacts may be at risk.';
+                        alertClass = 'danger';
+                    } else if (data.humidity < 20) {
+                        alertMsg = alertMsg || '⚠️ Humidity is too LOW! Artifacts may be at risk.';
+                        alertClass = 'danger';
+                    }
+                }
+
+                if (alertMsg) {
+                    sensorAlert.textContent = alertMsg;
+                    sensorAlert.className = 'sensor-alert ' + alertClass;
+                } else {
+                    sensorAlert.textContent = '✅ Temperature and humidity are within safe range.';
+                    sensorAlert.className = 'sensor-alert';
+                    sensorAlert.style.display = 'block';
+                    sensorAlert.style.background = 'rgba(78, 205, 196, 0.10)';
+                    sensorAlert.style.border = '1px solid rgba(78, 205, 196, 0.2)';
+                    sensorAlert.style.color = '#4ecdc4';
+                }
+            }
+
+            // ==========================================
+            // ARTIFACT DISPLAY
+            // ==========================================
+            function showArtifact(data) {
+                artifactDisplay.classList.add('active');
+                artifactName.textContent = data.name || 'Unknown Artifact';
+                artifactMeta.textContent = [data.origin, data.year, data.material].filter(Boolean).join(' • ') || 'Unknown origin';
+                artifactDesc.textContent = data.description || 'No description available.';
+
+                if (data.image_url) {
+                    artifactImage.innerHTML = `<img src="${data.image_url}" alt="${data.name}" />`;
+                } else if (data.emoji) {
+                    artifactImage.textContent = data.emoji;
+                } else {
+                    artifactImage.textContent = '🏺';
+                }
+
+                // Reset language buttons
+                langButtons.forEach(btn => btn.classList.remove('active'));
+                document.querySelector('.lang-buttons button[data-lang="en"]')?.classList.add('active');
+                langIndicator.textContent = '🔊 Speaking: English';
+                currentLangIndex = 0;
+            }
+
+            // ==========================================
+            // TEXT-TO-SPEECH (Web Speech API)
+            // ==========================================
+            function speakText(text, langCode, callback) {
+                if (!window.speechSynthesis) {
+                    console.warn('⚠️ Speech synthesis not supported');
+                    if (callback) callback();
+                    return;
+                }
+
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = langCode;
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+
+                // Try to find a matching voice
+                const voices = window.speechSynthesis.getVoices();
+                const matchedVoice = voices.find(v => v.lang.startsWith(langCode.split('-')[0]));
+                if (matchedVoice) {
+                    utterance.voice = matchedVoice;
+                }
+
+                utterance.onstart = function() {
+                    isSpeaking = true;
+                    console.log(`🔊 Speaking (${langCode}):`, text.substring(0, 50) + '...');
+                };
+
+                utterance.onend = function() {
+                    isSpeaking = false;
+                    if (callback) callback();
+                };
+
+                utterance.onerror = function(e) {
+                    console.error('❌ Speech error:', e);
+                    isSpeaking = false;
+                    if (callback) callback();
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            function speakArtifactInLanguages(data) {
+                if (!data || !data.description) return;
+
+                // Get descriptions in 3 languages
+                const texts = [
+                    data.description_ms || data.description,
+                    data.description_en || data.description,
+                    data.description_fr || data.description,
+                ];
+
+                const langCodes = ['ms-MY', 'en-US', 'fr-FR'];
+                const langNames = ['Bahasa Melayu', 'English', 'Français'];
+
+                let index = 0;
+                currentLangIndex = 0;
+
+                function speakNext() {
+                    if (index >= texts.length) {
+                        // All done
+                        langIndicator.textContent = '✅ Finished speaking all languages';
+                        return;
+                    }
+
+                    const text = texts[index];
+                    const langCode = langCodes[index];
+                    const langName = langNames[index];
+
+                    // Update UI
+                    langIndicator.textContent = `🔊 Speaking: ${langName}`;
+                    langButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.dataset.lang === langCodes[index].split('-')[0]) {
+                            btn.classList.add('active');
+                        }
+                    });
+
+                    speakText(text, langCode, function() {
+                        index++;
+                        currentLangIndex = index;
+                        // Small delay before next language
+                        setTimeout(speakNext, 800);
+                    });
+                }
+
+                // Start the sequence
+                speakNext();
+            }
+
+            // ==========================================
+            // SECTION SWITCHING
+            // ==========================================
+            function switchSection(sectionName) {
+                // Hide all
+                Object.keys(sections).forEach(key => {
+                    sections[key].classList.remove('active');
+                });
+
+                // Show target
+                if (sections[sectionName]) {
+                    sections[sectionName].classList.add('active');
+                    currentState = sectionName;
+
+                    // Update state label
+                    const stateMap = {
+                        'welcome': 'Idle',
+                        'driving': 'Driving',
+                        'presenting': 'Presenting',
+                        'admin': 'Admin'
+                    };
+                    stateLabel.textContent = stateMap[sectionName] || sectionName;
+                    adminStateLabel.textContent = stateMap[sectionName] || sectionName;
+
+                    // If switching to presenting, ensure artifact display is shown
+                    if (sectionName === 'presenting' && artifactData) {
+                        showArtifact(artifactData);
+                    }
+                }
+            }
+
+            // ==========================================
+            // ADMIN
+            // ==========================================
+            let adminLoggedIn = false;
+
+            adminToggleBtn.addEventListener('click', function() {
+                if (adminLoggedIn) {
+                    switchSection('admin');
+                } else {
+                    switchSection('admin');
+                    adminLogin.classList.remove('hidden');
+                    adminPanel.classList.remove('active');
+                }
+            });
+
+            adminLoginBtn.addEventListener('click', function() {
+                const pass = adminPassword.value.trim();
+                if (pass === CONFIG.adminPassword) {
+                    adminLoggedIn = true;
+                    adminLogin.classList.add('hidden');
+                    adminPanel.classList.add('active');
+                    adminLoginError.textContent = '';
+                    adminPassword.value = '';
+                } else {
+                    adminLoginError.textContent = '❌ Incorrect password. Try again.';
+                }
+            });
+
+            adminPassword.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    adminLoginBtn.click();
+                }
+            });
+
+            adminLogoutBtn.addEventListener('click', function() {
+                adminLoggedIn = false;
+                adminLogin.classList.remove('hidden');
+                adminPanel.classList.remove('active');
+                adminLoginError.textContent = '';
+                switchSection('welcome');
+            });
+
+            // Range sliders
+            minRangeSlider.addEventListener('input', function() {
+                minRangeVal.textContent = parseFloat(this.value).toFixed(1);
+            });
+            maxRangeSlider.addEventListener('input', function() {
+                maxRangeVal.textContent = parseFloat(this.value).toFixed(1);
+            });
+            speedSlider.addEventListener('input', function() {
+                speedVal.textContent = parseFloat(this.value).toFixed(2);
+            });
+
+            applyRangeBtn.addEventListener('click', function() {
+                const min = parseFloat(minRangeSlider.value);
+                const max = parseFloat(maxRangeSlider.value);
+                publishMqtt('museum/admin/range', { min: min, max: max });
+                alert(`✅ Detection range set to ${min}m - ${max}m`);
+            });
+
+            applySpeedBtn.addEventListener('click', function() {
+                const speed = parseFloat(speedSlider.value);
+                publishMqtt('museum/admin/speed', { speed: speed });
+                alert(`✅ Movement speed set to ${speed.toFixed(2)} m/s`);
+            });
+
+            adminResetBtn.addEventListener('click', function() {
+                if (confirm('Reset robot to idle state?')) {
+                    publishMqtt('museum/admin/reset', { action: 'reset' });
+                    switchSection('welcome');
+                }
+            });
+
+            // ==========================================
+            // PUBLISH MQTT
+            // ==========================================
+            function publishMqtt(topic, data) {
+                if (mqttClient && mqttConnected) {
+                    const payload = JSON.stringify(data);
+                    mqttClient.publish(topic, payload);
+                    console.log(`📤 MQTT publish: ${topic} → ${payload}`);
+                } else {
+                    console.warn('⚠️ MQTT not connected, cannot publish');
+                }
+            }
+
+            // ==========================================
+            // PRESENTING BUTTONS
+            // ==========================================
+
+            // Language buttons
+            langButtons.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const lang = this.dataset.lang;
+                    const langMap = {
+                        'ms': { code: 'ms-MY', name: 'Bahasa Melayu' },
+                        'en': { code: 'en-US', name: 'English' },
+                        'fr': { code: 'fr-FR', name: 'Français' }
+                    };
+
+                    if (artifactData && artifactData.description) {
+                        let desc = artifactData.description;
+                        if (lang === 'ms' && artifactData.description_ms) desc = artifactData.description_ms;
+                        if (lang === 'fr' && artifactData.description_fr) desc = artifactData.description_fr;
+
+                        langButtons.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        langIndicator.textContent = `🔊 Speaking: ${langMap[lang].name}`;
+
+                        speakText(desc, langMap[lang].code, function() {
+                            langIndicator.textContent = `✅ Finished speaking ${langMap[lang].name}`;
+                        });
+                    }
+                });
+            });
+
+            // Replay button
+            replayBtn.addEventListener('click', function() {
+                if (artifactData && artifactData.description) {
+                    // Replay current language
+                    const activeLang = document.querySelector('.lang-buttons .active');
+                    const lang = activeLang ? activeLang.dataset.lang : 'en';
+                    const langMap = {
+                        'ms': { code: 'ms-MY', name: 'Bahasa Melayu' },
+                        'en': { code: 'en-US', name: 'English' },
+                        'fr': { code: 'fr-FR', name: 'Français' }
+                    };
+                    let desc = artifactData.description;
+                    if (lang === 'ms' && artifactData.description_ms) desc = artifactData.description_ms;
+                    if (lang === 'fr' && artifactData.description_fr) desc = artifactData.description_fr;
+
+                    speakText(desc, langMap[lang].code, function() {
+                        langIndicator.textContent = `✅ Finished replay`;
+                    });
+                }
+            });
+
+            // Done button
+            doneBtn.addEventListener('click', function() {
+                // Publish done event
+                publishMqtt('museum/done', { action: 'done' });
+                // Reset UI
+                artifactDisplay.classList.remove('active');
+                greetingBox.textContent = '👋 Thank you for visiting!';
+                switchSection('welcome');
+                // Reset sensor alert style
+                sensorAlert.style.display = 'none';
+                sensorAlert.className = 'sensor-alert';
+            });
+
+            // ==========================================
+            // LOAD VOICES (for TTS)
+            // ==========================================
+            if (window.speechSynthesis) {
+                window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = function() {
+                    window.speechSynthesis.getVoices();
+                };
+            }
+
+            // ==========================================
+            // INIT
+            // ==========================================
+            console.log('🏛️ Museum Guide Webpage Starting...');
+            console.log('📡 Connecting to MQTT broker:', CONFIG.mqttBroker);
+
+            // Start MQTT connection
+            connectMQTT();
+
+            // Set initial state
+            switchSection('welcome');
+
+            // Auto-connect on page load (already connected)
+            // Show initial sensor placeholders
+            tempDisplay.textContent = '--°C';
+            humidDisplay.textContent = '--%';
+            crowdCountDisplay.textContent = '0';
+
+            console.log('✅ Ready! Waiting for MQTT data...');
+
+            // ==========================================
+            // DEMO MODE (for testing without robot)
+            // ==========================================
+            // Uncomment below to simulate MQTT messages for testing
+            /*
+            setTimeout(() => {
+                handleSensor({ temperature: 25.5, humidity: 55.0 });
+            }, 2000);
+
+            setTimeout(() => {
+                handleCrowd({ count: 3, moving: true, target_x: 2.5, target_y: 3.0, progress: 0.3, eta: 8.5 });
+            }, 4000);
+
+            setTimeout(() => {
+                handleState({ state: 'moving' });
+            }, 5000);
+
+            setTimeout(() => {
+                handleArtifact({
+                    id: 'vase',
+                    name: 'Ancient Ming Vase',
+                    origin: 'China',
+                    year: '15th Century',
+                    material: 'Porcelain',
+                    emoji: '🏺',
+                    description: 'This exquisite porcelain vase was crafted during the Ming Dynasty (1368-1644).',
+                    description_ms: 'Pasu porselin yang indah ini dicipta semasa Dinasti Ming (1368-1644).',
+                    description_fr: 'Ce vase en porcelaine exquis a été fabriqué sous la dynastie Ming (1368-1644).'
+                });
+            }, 8000);
+
+            setTimeout(() => {
+                handleWelcome({ message: 'Hello! Welcome to the museum!' });
+            }, 9000);
+            */
+
+        })();
+    </script>
+
+</body>
+</html>
