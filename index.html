@@ -1439,43 +1439,51 @@
             // ==========================================
             // SPEAK CURRENT ARTIFACT (Edge TTS)
             // ==========================================
-            async function speakCurrentArtifact() {
-                if (!window.currentSpeakText) return;
-                const text = window.currentSpeakText;
-                const voice = window.currentEdgeVoice || 'en-US-AriaNeural';
+async function speakCurrentArtifact() {
+    if (!window.currentSpeakText) return;
+    const text = window.currentSpeakText;
+    const voice = window.currentEdgeVoice || 'en-US-AriaNeural';
 
-                if (window.speechSynthesis) {
-                    window.speechSynthesis.cancel();
-                }
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
 
-                langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`;
+    langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`;
 
-                try {
-                    const tts = new EdgeTTSBrowser();
-                    tts.tts.setVoiceParams({
-                        text: text,
-                        voice: voice,
-                    });
-                    const fileName = `output-${Date.now()}.mp3`;
-                    const blob = await tts.ttsToFile(fileName);
-                    const url = URL.createObjectURL(blob);
-                    const audio = new Audio(url);
-                    audio.onended = function() {
-                        langIndicator.textContent = `✅ Finished speaking (${voice})`;
-                        URL.revokeObjectURL(url);
-                    };
-                    audio.onerror = function(e) {
-                        console.error('❌ Audio playback error:', e);
-                        langIndicator.textContent = `❌ Speech error`;
-                        fallbackSpeak(text, window.currentLangCode);
-                    };
-                    audio.play();
-                } catch (e) {
-                    console.error('❌ Edge TTS error:', e);
-                    langIndicator.textContent = `❌ TTS error, trying fallback...`;
-                    fallbackSpeak(text, window.currentLangCode);
-                }
-            }
+    // Check if EdgeTTSBrowser is available
+    if (typeof EdgeTTSBrowser !== 'undefined') {
+        try {
+            const tts = new EdgeTTSBrowser();
+            tts.tts.setVoiceParams({
+                text: text,
+                voice: voice,
+            });
+            const fileName = `output-${Date.now()}.mp3`;
+            const blob = await tts.ttsToFile(fileName);
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            audio.onended = function() {
+                langIndicator.textContent = `✅ Finished speaking (${voice})`;
+                URL.revokeObjectURL(url);
+            };
+            audio.onerror = function(e) {
+                console.error('❌ Audio playback error:', e);
+                langIndicator.textContent = `❌ Speech error`;
+                fallbackSpeak(text, window.currentLangCode);
+            };
+            audio.play();
+            return; // Success, exit function
+        } catch (e) {
+            console.warn('⚠️ Edge TTS failed, falling back to Web Speech:', e.message);
+            // Fall through to fallback
+        }
+    } else {
+        console.warn('⚠️ EdgeTTSBrowser not loaded, using Web Speech fallback.');
+    }
+
+    // Fallback to Web Speech API
+    fallbackSpeak(text, window.currentLangCode);
+}
 
             // ==========================================
             // FALLBACK SPEAK (Web Speech API)
