@@ -8,8 +8,8 @@
     <!-- MQTT Library -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js">
     </script>
-    <!-- Edge TTS Library (No API Key Required) -->
-    <script src="https://cdn.jsdelivr.net/npm/edge-tts-browser@1.0.1/dist/edge-tts-browser.umd.js">
+    <!-- Puter.js TTS Library (No API Key Required) -->
+    <script src="https://js.puter.com/v2/">
     </script>
 
     <style>
@@ -1037,7 +1037,7 @@
             const mqttLabel = document.getElementById('mqttLabel');
 
             // ==========================================
-            // DEMO MODE (Improved Sequence)
+            // DEMO MODE
             // ==========================================
             const demoArtifacts = [{
                 id: 'vase',
@@ -1090,7 +1090,7 @@
             }];
 
             // Demo state machine
-            let demoState = 'idle'; // idle, crowd_detected, moving, arrived, presenting
+            let demoState = 'idle';
             let demoStep = 0;
 
             function startDemo() {
@@ -1111,19 +1111,16 @@
                     humid = 55 + Math.sin(demoStep * 0.15 + 1) * 5;
                     handleSensor({ temperature: temp, humidity: humid });
 
-                    // ---- STATE MACHINE ----
                     switch (demoState) {
                         case 'idle':
-                            // Wait for a crowd (trigger at step % 8 === 0)
                             if (demoStep % 8 === 0) {
-                                const crowdCount = Math.floor(Math.random() * 3) + 2; // 2-4 people
+                                const crowdCount = Math.floor(Math.random() * 3) + 2;
                                 const targetX = parseFloat((Math.random() * 3 + 1).toFixed(1));
                                 const targetY = parseFloat((Math.random() * 3 + 1).toFixed(1));
                                 handleCrowd({ count: crowdCount, moving: true, target_x: targetX, target_y: targetY,
                                     progress: 0.1, eta: 8.0 });
                                 handleState({ state: 'moving' });
                                 demoState = 'moving';
-                                // Store target for progress updates
                                 window.demoTargetX = targetX;
                                 window.demoTargetY = targetY;
                                 window.demoProgress = 0.1;
@@ -1132,19 +1129,16 @@
                             break;
 
                         case 'moving':
-                            // Update progress (simulate movement)
                             if (window.demoProgress !== undefined) {
                                 window.demoProgress += 0.05;
                                 if (window.demoProgress > 0.95) {
                                     window.demoProgress = 1.0;
                                     window.demoEta = 0;
-                                    // Arrived!
                                     handleCrowd({ count: 2, moving: true, target_x: window.demoTargetX, target_y: window
                                             .demoTargetY,
                                         progress: 1.0, eta: 0 });
                                     handleState({ state: 'presenting' });
                                     greetingBox.textContent = '👋 Hello! Welcome to the museum!';
-                                    // Pick a random artifact
                                     const artifact = demoArtifacts[Math.floor(Math.random() * demoArtifacts.length)];
                                     handleArtifact(artifact);
                                     handleWelcome({ message: 'Hello! Welcome to the museum!' });
@@ -1164,14 +1158,11 @@
                             break;
 
                         case 'presenting':
-                            // Do nothing – stay in presenting until user clicks Done
                             break;
 
                         default:
                             break;
                     }
-
-                    // If in idle, also keep state label idle (already set by handleState)
                 }, 2000);
             }
 
@@ -1187,7 +1178,6 @@
                 demoStatus.style.color = '#888';
                 handleState({ state: 'idle' });
                 handleCrowd({ count: 0, moving: false });
-                // Reset any demo-specific UI
                 progressFill.style.width = '0%';
                 etaDisplay.textContent = '⏱️ ETA: -- s';
                 coordDisplay.textContent = 'Target: (--, --)';
@@ -1316,7 +1306,6 @@
                 checkSensorAlert(data);
             }
 
-            // FIX: ensure numeric values
             function handleCrowd(data) {
                 if (data.target_x !== undefined) data.target_x = parseFloat(data.target_x);
                 if (data.target_y !== undefined) data.target_y = parseFloat(data.target_y);
@@ -1328,7 +1317,6 @@
                     crowdCountDisplay.textContent = data.count;
                 }
                 if (data.count >= 2 && data.moving === true) {
-                    // Only switch to driving if not already presenting
                     if (currentState !== 'presenting') {
                         switchSection('driving');
                     }
@@ -1342,9 +1330,7 @@
                         etaDisplay.textContent = `⏱️ ETA: ${data.eta.toFixed(1)} s`;
                     }
                 }
-                if (data.count === 0 && currentState === 'idle') {
-                    // stay idle
-                }
+                if (data.count === 0 && currentState === 'idle') {}
             }
 
             function handleState(data) {
@@ -1353,7 +1339,6 @@
                     stateLabel.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
                     adminStateLabel.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
                 }
-                // Only switch if not already in presenting (to avoid overriding)
                 if (currentState !== 'presenting') {
                     if (data.state === 'idle') {
                         switchSection('welcome');
@@ -1380,7 +1365,7 @@
             }
 
             // ==========================================
-            // DISPLAY ARTIFACT (with language support)
+            // DISPLAY ARTIFACT
             // ==========================================
             function displayArtifact(artifact, lang) {
                 if (!artifact) return;
@@ -1418,12 +1403,6 @@
 
                 window.currentSpeakText = `${name}. ${desc}`;
                 window.currentLangCode = lang === 'ms' ? 'ms-MY' : (lang === 'fr' ? 'fr-FR' : 'en-US');
-                const edgeVoiceMap = {
-                    'ms-MY': 'ms-MY-YasminNeural',
-                    'fr-FR': 'fr-FR-DeniseNeural',
-                    'en-US': 'en-US-AriaNeural'
-                };
-                window.currentEdgeVoice = edgeVoiceMap[window.currentLangCode] || 'en-US-AriaNeural';
 
                 const langNames = { 'ms': 'Bahasa Melayu', 'en': 'English', 'fr': 'Français' };
                 langIndicator.textContent = `🔊 Speaking: ${langNames[lang] || 'English'}`;
@@ -1437,53 +1416,58 @@
             }
 
             // ==========================================
-            // SPEAK CURRENT ARTIFACT (Edge TTS)
+            // SPEAK CURRENT ARTIFACT (Puter.js)
             // ==========================================
-async function speakCurrentArtifact() {
-    if (!window.currentSpeakText) return;
-    const text = window.currentSpeakText;
-    const voice = window.currentEdgeVoice || 'en-US-AriaNeural';
+            async function speakCurrentArtifact() {
+                if (!window.currentSpeakText) return;
+                const text = window.currentSpeakText;
 
-    if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-    }
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                }
 
-    langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`;
+                langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`;
 
-    // Check if EdgeTTSBrowser is available
-    if (typeof EdgeTTSBrowser !== 'undefined') {
-        try {
-            const tts = new EdgeTTSBrowser();
-            tts.tts.setVoiceParams({
-                text: text,
-                voice: voice,
-            });
-            const fileName = `output-${Date.now()}.mp3`;
-            const blob = await tts.ttsToFile(fileName);
-            const url = URL.createObjectURL(blob);
-            const audio = new Audio(url);
-            audio.onended = function() {
-                langIndicator.textContent = `✅ Finished speaking (${voice})`;
-                URL.revokeObjectURL(url);
-            };
-            audio.onerror = function(e) {
-                console.error('❌ Audio playback error:', e);
-                langIndicator.textContent = `❌ Speech error`;
-                fallbackSpeak(text, window.currentLangCode);
-            };
-            audio.play();
-            return; // Success, exit function
-        } catch (e) {
-            console.warn('⚠️ Edge TTS failed, falling back to Web Speech:', e.message);
-            // Fall through to fallback
-        }
-    } else {
-        console.warn('⚠️ EdgeTTSBrowser not loaded, using Web Speech fallback.');
-    }
+                const langMap = {
+                    'ms-MY': 'ms-MY',
+                    'en-US': 'en-US',
+                    'fr-FR': 'fr-FR'
+                };
+                const language = langMap[window.currentLangCode] || 'en-US';
 
-    // Fallback to Web Speech API
-    fallbackSpeak(text, window.currentLangCode);
-}
+                const voiceMap = {
+                    'ms-MY': 'Yasmin',
+                    'en-US': 'Joanna',
+                    'fr-FR': 'Celine'
+                };
+                const voice = voiceMap[language] || 'Joanna';
+
+                try {
+                    // Use Puter.js TTS
+                    const audio = await puter.ai.txt2speech(text, {
+                        language: language,
+                        voice: voice,
+                        engine: 'neural',
+                    });
+
+                    audio.play();
+
+                    audio.onended = function() {
+                        langIndicator.textContent = `✅ Finished speaking (Puter.js)`;
+                    };
+
+                    audio.onerror = function(e) {
+                        console.error('❌ Puter.js audio error:', e);
+                        langIndicator.textContent = `❌ TTS error, using fallback...`;
+                        fallbackSpeak(text, window.currentLangCode);
+                    };
+
+                } catch (error) {
+                    console.warn('⚠️ Puter.js TTS failed:', error);
+                    langIndicator.textContent = `⚠️ TTS error, using fallback...`;
+                    fallbackSpeak(text, window.currentLangCode);
+                }
+            }
 
             // ==========================================
             // FALLBACK SPEAK (Web Speech API)
@@ -1624,7 +1608,6 @@ async function speakCurrentArtifact() {
                 switchSection('welcome');
             });
 
-            // Range sliders
             minRangeSlider.addEventListener('input', function() {
                 minRangeVal.textContent = parseFloat(this.value).toFixed(1);
             });
@@ -1702,9 +1685,7 @@ async function speakCurrentArtifact() {
                     }, 2000);
                 });
 
-                btn.addEventListener('touchstart', function(e) {
-                    // passive
-                }, { passive: true });
+                btn.addEventListener('touchstart', function(e) {}, { passive: true });
             });
 
             // ==========================================
@@ -1743,7 +1724,6 @@ async function speakCurrentArtifact() {
                 }
             });
 
-            // Done button – returns to idle and resets demo if running
             doneBtn.addEventListener('click', function() {
                 publishMqtt('museum/done', { action: 'done' });
                 artifactDisplay.classList.remove('active');
@@ -1751,17 +1731,13 @@ async function speakCurrentArtifact() {
                 switchSection('welcome');
                 sensorAlert.style.display = 'none';
                 sensorAlert.className = 'sensor-alert';
-                // If demo is running, reset demo state to idle
                 if (demoMode) {
                     demoState = 'idle';
-                    // Reset progress UI
                     progressFill.style.width = '0%';
                     etaDisplay.textContent = '⏱️ ETA: -- s';
                     coordDisplay.textContent = 'Target: (--, --)';
-                    // Reset crowd count display
                     crowdCountDisplay.textContent = '0';
                 }
-                // Also reset current artifact data
                 currentArtifactData = null;
             });
 
@@ -1780,7 +1756,7 @@ async function speakCurrentArtifact() {
             // ==========================================
             console.log('🏛️ Museum Guide Webpage Starting...');
             console.log('📡 Connecting to MQTT broker:', CONFIG.mqttBroker);
-            console.log('🗣️ Using Edge TTS for high-quality voices (no API key required)');
+            console.log('🗣️ Using Puter.js for TTS (no API key required)');
 
             connectMQTT();
             switchSection('welcome');
