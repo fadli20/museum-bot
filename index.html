@@ -1037,7 +1037,7 @@
             const mqttLabel = document.getElementById('mqttLabel');
 
             // ==========================================
-            // DEMO MODE
+            // DEMO MODE (Improved Sequence)
             // ==========================================
             const demoArtifacts = [{
                 id: 'vase',
@@ -1089,56 +1089,89 @@
                 material_fr: 'Métaux variés'
             }];
 
+            // Demo state machine
+            let demoState = 'idle'; // idle, crowd_detected, moving, arrived, presenting
+            let demoStep = 0;
+
             function startDemo() {
                 if (demoMode) return;
                 demoMode = true;
+                demoState = 'idle';
+                demoStep = 0;
                 demoModeBtn.textContent = '⏹️ Stop Demo';
                 demoStatus.textContent = 'Demo: Running';
                 demoStatus.style.color = '#4ecdc4';
 
                 let temp = 24;
                 let humid = 55;
-                let crowdCount = 0;
-                let step = 0;
 
                 demoInterval = setInterval(() => {
-                    step++;
-                    temp = 24 + Math.sin(step * 0.1) * 2;
-                    humid = 55 + Math.sin(step * 0.15 + 1) * 5;
-
-                    if (step % 8 === 0) {
-                        crowdCount = Math.floor(Math.random() * 4) + 1;
-                    } else if (step % 8 === 4) {
-                        crowdCount = 0;
-                    }
-
+                    demoStep++;
+                    temp = 24 + Math.sin(demoStep * 0.1) * 2;
+                    humid = 55 + Math.sin(demoStep * 0.15 + 1) * 5;
                     handleSensor({ temperature: temp, humidity: humid });
 
-                    if (crowdCount >= 2) {
-                        // FIX: parseFloat to ensure numbers
-                        const targetX = parseFloat((Math.random() * 3 + 1).toFixed(1));
-                        const targetY = parseFloat((Math.random() * 3 + 1).toFixed(1));
-                        handleCrowd({
-                            count: crowdCount,
-                            moving: true,
-                            target_x: targetX,
-                            target_y: targetY,
-                            progress: 0.5,
-                            eta: 5.0
-                        });
-                        handleState({ state: 'moving' });
-                    } else {
-                        handleCrowd({ count: crowdCount, moving: false });
-                        if (crowdCount === 0) {
-                            handleState({ state: 'idle' });
-                        }
+                    // ---- STATE MACHINE ----
+                    switch (demoState) {
+                        case 'idle':
+                            // Wait for a crowd (trigger at step % 8 === 0)
+                            if (demoStep % 8 === 0) {
+                                const crowdCount = Math.floor(Math.random() * 3) + 2; // 2-4 people
+                                const targetX = parseFloat((Math.random() * 3 + 1).toFixed(1));
+                                const targetY = parseFloat((Math.random() * 3 + 1).toFixed(1));
+                                handleCrowd({ count: crowdCount, moving: true, target_x: targetX, target_y: targetY,
+                                    progress: 0.1, eta: 8.0 });
+                                handleState({ state: 'moving' });
+                                demoState = 'moving';
+                                // Store target for progress updates
+                                window.demoTargetX = targetX;
+                                window.demoTargetY = targetY;
+                                window.demoProgress = 0.1;
+                                window.demoEta = 8.0;
+                            }
+                            break;
+
+                        case 'moving':
+                            // Update progress (simulate movement)
+                            if (window.demoProgress !== undefined) {
+                                window.demoProgress += 0.05;
+                                if (window.demoProgress > 0.95) {
+                                    window.demoProgress = 1.0;
+                                    window.demoEta = 0;
+                                    // Arrived!
+                                    handleCrowd({ count: 2, moving: true, target_x: window.demoTargetX, target_y: window
+                                            .demoTargetY,
+                                        progress: 1.0, eta: 0 });
+                                    handleState({ state: 'presenting' });
+                                    greetingBox.textContent = '👋 Hello! Welcome to the museum!';
+                                    // Pick a random artifact
+                                    const artifact = demoArtifacts[Math.floor(Math.random() * demoArtifacts.length)];
+                                    handleArtifact(artifact);
+                                    handleWelcome({ message: 'Hello! Welcome to the museum!' });
+                                    demoState = 'presenting';
+                                } else {
+                                    window.demoEta = Math.max(0, (1 - window.demoProgress) * 8);
+                                    handleCrowd({
+                                        count: 2,
+                                        moving: true,
+                                        target_x: window.demoTargetX,
+                                        target_y: window.demoTargetY,
+                                        progress: window.demoProgress,
+                                        eta: window.demoEta
+                                    });
+                                }
+                            }
+                            break;
+
+                        case 'presenting':
+                            // Do nothing – stay in presenting until user clicks Done
+                            break;
+
+                        default:
+                            break;
                     }
 
-                    if (step % 20 === 0 && crowdCount >= 2) {
-                        const artifact = demoArtifacts[Math.floor(Math.random() * demoArtifacts.length)];
-                        handleArtifact(artifact);
-                        handleWelcome({ message: 'Hello! Welcome to the museum!' });
-                    }
+                    // If in idle, also keep state label idle (already set by handleState)
                 }, 2000);
             }
 
@@ -1148,11 +1181,16 @@
                     demoInterval = null;
                 }
                 demoMode = false;
+                demoState = 'idle';
                 demoModeBtn.textContent = '▶️ Start Demo';
                 demoStatus.textContent = 'Demo: Off';
                 demoStatus.style.color = '#888';
                 handleState({ state: 'idle' });
                 handleCrowd({ count: 0, moving: false });
+                // Reset any demo-specific UI
+                progressFill.style.width = '0%';
+                etaDisplay.textContent = '⏱️ ETA: -- s';
+                coordDisplay.textContent = 'Target: (--, --)';
             }
 
             demoModeBtn.addEventListener('click', function() {
@@ -1280,7 +1318,6 @@
 
             // FIX: ensure numeric values
             function handleCrowd(data) {
-                // Convert string numbers to actual numbers if needed
                 if (data.target_x !== undefined) data.target_x = parseFloat(data.target_x);
                 if (data.target_y !== undefined) data.target_y = parseFloat(data.target_y);
                 if (data.progress !== undefined) data.progress = parseFloat(data.progress);
@@ -1291,7 +1328,10 @@
                     crowdCountDisplay.textContent = data.count;
                 }
                 if (data.count >= 2 && data.moving === true) {
-                    switchSection('driving');
+                    // Only switch to driving if not already presenting
+                    if (currentState !== 'presenting') {
+                        switchSection('driving');
+                    }
                     if (data.target_x !== undefined && data.target_y !== undefined) {
                         coordDisplay.textContent = `Target: (${data.target_x.toFixed(1)}, ${data.target_y.toFixed(1)})`;
                     }
@@ -1313,12 +1353,15 @@
                     stateLabel.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
                     adminStateLabel.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
                 }
-                if (data.state === 'idle') {
-                    switchSection('welcome');
-                } else if (data.state === 'moving' || data.state === 'driving') {
-                    switchSection('driving');
-                } else if (data.state === 'presenting' || data.state === 'greeting') {
-                    switchSection('presenting');
+                // Only switch if not already in presenting (to avoid overriding)
+                if (currentState !== 'presenting') {
+                    if (data.state === 'idle') {
+                        switchSection('welcome');
+                    } else if (data.state === 'moving' || data.state === 'driving') {
+                        switchSection('driving');
+                    } else if (data.state === 'presenting' || data.state === 'greeting') {
+                        switchSection('presenting');
+                    }
                 }
             }
 
@@ -1692,6 +1735,7 @@
                 }
             });
 
+            // Done button – returns to idle and resets demo if running
             doneBtn.addEventListener('click', function() {
                 publishMqtt('museum/done', { action: 'done' });
                 artifactDisplay.classList.remove('active');
@@ -1699,7 +1743,18 @@
                 switchSection('welcome');
                 sensorAlert.style.display = 'none';
                 sensorAlert.className = 'sensor-alert';
-                if (demoMode) stopDemo();
+                // If demo is running, reset demo state to idle
+                if (demoMode) {
+                    demoState = 'idle';
+                    // Reset progress UI
+                    progressFill.style.width = '0%';
+                    etaDisplay.textContent = '⏱️ ETA: -- s';
+                    coordDisplay.textContent = 'Target: (--, --)';
+                    // Reset crowd count display
+                    crowdCountDisplay.textContent = '0';
+                }
+                // Also reset current artifact data
+                currentArtifactData = null;
             });
 
             // ==========================================
