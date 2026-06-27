@@ -13,8 +13,9 @@
     </script>
 
     <style>
-        /* --- CSS: Your existing responsive styles --- */
-        /* (Paste your complete CSS here. It's omitted for brevity, but you must include it) */
+        /* ==========================================
+           RESET & BASE
+           ========================================== */
         * {
             margin: 0;
             padding: 0;
@@ -603,7 +604,6 @@
             background: rgba(233, 69, 96, 0.25);
         }
 
-        /* --- New Manual Control Styles --- */
         .control-group.manual-control {
             flex-direction: column;
             align-items: stretch;
@@ -681,7 +681,6 @@
             border-radius: 10px;
         }
 
-        /* --- Responsive Styles --- */
         @media (max-width: 600px) {
             #app {
                 padding: 12px 15px;
@@ -828,7 +827,7 @@
                 </div>
 
                 <div id="sensorAlert" class="sensor-alert"></div>
-                
+
                 <!-- Demo Mode Toggle -->
                 <div style="margin-top: 15px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
                     <button id="demoModeBtn" style="background: rgba(78, 205, 196, 0.15); border: 1px solid #4ecdc4; color: #4ecdc4; padding: 8px 24px; border-radius: 30px; cursor: pointer; font-size: 0.9rem;">▶️ Start Demo</button>
@@ -913,8 +912,8 @@
                         <span class="val" id="speedVal">0.5</span>
                         <button id="applySpeedBtn">Apply</button>
                     </div>
-                    
-                    <!-- NEW: Manual Control Section -->
+
+                    <!-- Manual Control Section -->
                     <div class="setting-group control-group manual-control">
                         <label style="width: 100%;">🕹️ Manual Control</label>
                         <div class="btn-grid">
@@ -970,7 +969,7 @@
                 topicCrowd: 'museum/crowd',
                 topicState: 'museum/state',
                 topicRobotPos: 'museum/robot_position',
-                topicManualControl: 'museum/manual_control', // NEW topic
+                topicManualControl: 'museum/manual_control',
                 adminPassword: 'museum2025'
             };
 
@@ -1097,7 +1096,6 @@
                 demoStatus.textContent = 'Demo: Running';
                 demoStatus.style.color = '#4ecdc4';
 
-                // Simulate sensor data
                 let temp = 24;
                 let humid = 55;
                 let crowdCount = 0;
@@ -1105,22 +1103,29 @@
 
                 demoInterval = setInterval(() => {
                     step++;
-                    // Simulate temperature fluctuation
                     temp = 24 + Math.sin(step * 0.1) * 2;
                     humid = 55 + Math.sin(step * 0.15 + 1) * 5;
 
-                    // Simulate crowd detection (every 8 seconds)
                     if (step % 8 === 0) {
                         crowdCount = Math.floor(Math.random() * 4) + 1;
                     } else if (step % 8 === 4) {
                         crowdCount = 0;
                     }
 
-                    // Publish simulated data
                     handleSensor({ temperature: temp, humidity: humid });
+
                     if (crowdCount >= 2) {
-                        handleCrowd({ count: crowdCount, moving: true, target_x: (Math.random() * 3 + 1).toFixed(1),
-                            target_y: (Math.random() * 3 + 1).toFixed(1), progress: 0.5, eta: 5.0 });
+                        // FIX: parseFloat to ensure numbers
+                        const targetX = parseFloat((Math.random() * 3 + 1).toFixed(1));
+                        const targetY = parseFloat((Math.random() * 3 + 1).toFixed(1));
+                        handleCrowd({
+                            count: crowdCount,
+                            moving: true,
+                            target_x: targetX,
+                            target_y: targetY,
+                            progress: 0.5,
+                            eta: 5.0
+                        });
                         handleState({ state: 'moving' });
                     } else {
                         handleCrowd({ count: crowdCount, moving: false });
@@ -1129,14 +1134,11 @@
                         }
                     }
 
-                    // Simulate artifact detection (every 20 seconds)
                     if (step % 20 === 0 && crowdCount >= 2) {
                         const artifact = demoArtifacts[Math.floor(Math.random() * demoArtifacts.length)];
                         handleArtifact(artifact);
                         handleWelcome({ message: 'Hello! Welcome to the museum!' });
                     }
-
-                    // Update crowd count display (already done in handleCrowd)
                 }, 2000);
             }
 
@@ -1149,7 +1151,6 @@
                 demoModeBtn.textContent = '▶️ Start Demo';
                 demoStatus.textContent = 'Demo: Off';
                 demoStatus.style.color = '#888';
-                // Reset to idle
                 handleState({ state: 'idle' });
                 handleCrowd({ count: 0, moving: false });
             }
@@ -1277,7 +1278,14 @@
                 checkSensorAlert(data);
             }
 
+            // FIX: ensure numeric values
             function handleCrowd(data) {
+                // Convert string numbers to actual numbers if needed
+                if (data.target_x !== undefined) data.target_x = parseFloat(data.target_x);
+                if (data.target_y !== undefined) data.target_y = parseFloat(data.target_y);
+                if (data.progress !== undefined) data.progress = parseFloat(data.progress);
+                if (data.eta !== undefined) data.eta = parseFloat(data.eta);
+
                 console.log('👥 Crowd data:', data);
                 if (data.count !== undefined) {
                     crowdCountDisplay.textContent = data.count;
@@ -1365,10 +1373,8 @@
 
                 artifactDisplay.classList.add('active');
 
-                // Store text for TTS
                 window.currentSpeakText = `${name}. ${desc}`;
                 window.currentLangCode = lang === 'ms' ? 'ms-MY' : (lang === 'fr' ? 'fr-FR' : 'en-US');
-                // Store voice name for Edge TTS (prefer neural voices)
                 const edgeVoiceMap = {
                     'ms-MY': 'ms-MY-YasminNeural',
                     'fr-FR': 'fr-FR-DeniseNeural',
@@ -1395,27 +1401,21 @@
                 const text = window.currentSpeakText;
                 const voice = window.currentEdgeVoice || 'en-US-AriaNeural';
 
-                // Cancel any ongoing speech (if using Web Speech API fallback)
                 if (window.speechSynthesis) {
                     window.speechSynthesis.cancel();
                 }
 
-                // Update UI
                 langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`;
 
                 try {
-                    // Use Edge TTS Browser library (no API key required)
                     const tts = new EdgeTTSBrowser();
-                    // Set voice and text
                     tts.tts.setVoiceParams({
                         text: text,
                         voice: voice,
                     });
-                    // Generate audio blob
                     const fileName = `output-${Date.now()}.mp3`;
                     const blob = await tts.ttsToFile(fileName);
                     const url = URL.createObjectURL(blob);
-                    // Play audio
                     const audio = new Audio(url);
                     audio.onended = function() {
                         langIndicator.textContent = `✅ Finished speaking (${voice})`;
@@ -1424,14 +1424,12 @@
                     audio.onerror = function(e) {
                         console.error('❌ Audio playback error:', e);
                         langIndicator.textContent = `❌ Speech error`;
-                        // Fallback to Web Speech API if Edge TTS fails
                         fallbackSpeak(text, window.currentLangCode);
                     };
                     audio.play();
                 } catch (e) {
                     console.error('❌ Edge TTS error:', e);
                     langIndicator.textContent = `❌ TTS error, trying fallback...`;
-                    // Fallback to Web Speech API
                     fallbackSpeak(text, window.currentLangCode);
                 }
             }
@@ -1450,7 +1448,6 @@
                 utterance.rate = 0.9;
                 utterance.pitch = 1.0;
 
-                // Try to find matching voice
                 const voices = window.speechSynthesis.getVoices();
                 let voice = voices.find(v => v.lang === langCode);
                 if (!voice) {
@@ -1604,7 +1601,6 @@
                 if (confirm('Reset robot to idle state?')) {
                     publishMqtt('museum/admin/reset', { action: 'reset' });
                     switchSection('welcome');
-                    // Also stop demo if running
                     if (demoMode) stopDemo();
                 }
             });
@@ -1614,7 +1610,6 @@
             // ==========================================
             const dirButtons = document.querySelectorAll('.dir-btn');
 
-            // Map direction to velocity commands
             const dirMap = {
                 'forward': { x: 0.3, y: 0, z: 0 },
                 'backward': { x: -0.3, y: 0, z: 0 },
@@ -1631,7 +1626,6 @@
                     const cmd = dirMap[dir];
                     if (!cmd) return;
 
-                    // Publish to MQTT
                     publishMqtt(CONFIG.topicManualControl, {
                         command: dir,
                         linear_x: cmd.x,
@@ -1639,7 +1633,6 @@
                         angular_z: cmd.z
                     });
 
-                    // Update status
                     const dirNames = {
                         'forward': '⬆️ Forward',
                         'backward': '⬇️ Backward',
@@ -1652,16 +1645,14 @@
                     manualStatus.textContent = `🚀 Sent: ${dirNames[dir] || dir}`;
                     manualStatus.style.color = '#4ecdc4';
 
-                    // Reset status after 2 seconds
                     setTimeout(() => {
                         manualStatus.textContent = 'Tap a direction to send command';
                         manualStatus.style.color = '#888';
                     }, 2000);
                 });
 
-                // Touch feedback for mobile
                 btn.addEventListener('touchstart', function(e) {
-                    // Just to ensure touch events work
+                    // passive
                 }, { passive: true });
             });
 
