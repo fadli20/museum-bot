@@ -2,48 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>🏛️ Museum Guide Robot</title>
 
     <!-- MQTT Library -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js">
     </script>
+    <!-- Edge TTS Library (No API Key Required) -->
+    <script src="https://cdn.jsdelivr.net/npm/edge-tts-browser@1.0.1/dist/edge-tts-browser.umd.js">
+    </script>
 
     <style>
-        /* ==========================================
-           RESET & BASE
-           ========================================== */
+        /* --- CSS: Your existing responsive styles --- */
+        /* (Paste your complete CSS here. It's omitted for brevity, but you must include it) */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html,
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #0a0a1a;
             color: #eee;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         #app {
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            min-height: 100vh;
             max-width: 1200px;
-            max-height: 900px;
+            margin: 0 auto;
             background: linear-gradient(145deg, #12122a, #1a1a3e);
-            border-radius: 30px;
-            padding: 25px 30px;
-            position: relative;
-            overflow: hidden;
+            padding: 15px 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.06);
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
         }
 
         .section {
@@ -51,7 +49,8 @@
             flex: 1;
             flex-direction: column;
             animation: fadeIn 0.6s ease;
-            position: relative;
+            overflow-y: auto;
+            padding-bottom: 20px;
         }
 
         .section.active {
@@ -61,7 +60,7 @@
         @keyframes fadeIn {
             0% {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(15px);
             }
             100% {
                 opacity: 1;
@@ -71,16 +70,18 @@
 
         .top-bar {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 15px;
+            padding-bottom: 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             margin-bottom: 15px;
             flex-shrink: 0;
+            gap: 8px;
         }
 
         .top-bar .title {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 700;
             color: #e94560;
             letter-spacing: 0.5px;
@@ -94,13 +95,13 @@
         .top-bar .status-badge {
             background: rgba(233, 69, 96, 0.15);
             color: #e94560;
-            padding: 6px 18px;
+            padding: 4px 14px;
             border-radius: 30px;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             border: 1px solid rgba(233, 69, 96, 0.2);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .top-bar .status-badge .dot {
@@ -128,10 +129,10 @@
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #aaa;
-            padding: 6px 16px;
+            padding: 4px 14px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             transition: 0.3s;
         }
 
@@ -140,7 +141,6 @@
             color: #fff;
         }
 
-        /* Welcome */
         #welcome-section .welcome-content {
             flex: 1;
             display: flex;
@@ -148,11 +148,12 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            gap: 15px;
+            gap: 12px;
+            padding: 10px 0;
         }
 
         #welcome-section .robot-face {
-            font-size: 5rem;
+            font-size: 4rem;
             line-height: 1;
             animation: float 3s ease-in-out infinite;
         }
@@ -163,7 +164,7 @@
                 transform: translateY(0);
             }
             50% {
-                transform: translateY(-12px);
+                transform: translateY(-10px);
             }
         }
 
@@ -185,7 +186,7 @@
         }
 
         #welcome-section h2 {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             color: #fff;
             font-weight: 300;
         }
@@ -197,14 +198,14 @@
 
         #welcome-section .sub {
             color: #888;
-            font-size: 1rem;
-            max-width: 500px;
+            font-size: 0.9rem;
+            max-width: 90%;
         }
 
         .sensor-row {
             display: flex;
-            gap: 30px;
-            margin-top: 20px;
+            gap: 15px;
+            margin-top: 15px;
             flex-wrap: wrap;
             justify-content: center;
         }
@@ -213,19 +214,21 @@
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 16px;
-            padding: 18px 28px;
-            min-width: 120px;
+            padding: 14px 20px;
+            min-width: 100px;
+            flex: 1 0 auto;
+            max-width: 160px;
             text-align: center;
         }
 
         .sensor-card .value {
-            font-size: 2rem;
+            font-size: 1.6rem;
             font-weight: 700;
             color: #fff;
         }
 
         .sensor-card .label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #888;
             margin-top: 4px;
             text-transform: uppercase;
@@ -240,12 +243,14 @@
         }
 
         .sensor-alert {
-            margin-top: 15px;
-            padding: 12px 24px;
+            margin-top: 12px;
+            padding: 10px 16px;
             border-radius: 12px;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             display: none;
             font-weight: 600;
+            width: 100%;
+            max-width: 100%;
         }
 
         .sensor-alert.danger {
@@ -262,19 +267,19 @@
             color: #ffd93d;
         }
 
-        /* Driving */
         #driving-section .driving-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             text-align: center;
+            padding: 10px 0;
         }
 
         #driving-section .driving-icon {
-            font-size: 4rem;
+            font-size: 3.5rem;
             animation: pulse 1.2s infinite;
         }
 
@@ -291,28 +296,28 @@
         }
 
         #driving-section h2 {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             color: #ffd93d;
         }
 
         #driving-section .coord-display {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 15px 35px;
+            border-radius: 14px;
+            padding: 12px 24px;
             font-family: 'Courier New', monospace;
-            font-size: 1.3rem;
+            font-size: 1.1rem;
             color: #4ecdc4;
+            word-break: break-all;
         }
 
         #driving-section .progress-wrap {
-            width: 80%;
+            width: 85%;
             max-width: 400px;
             background: rgba(255, 255, 255, 0.06);
             border-radius: 30px;
-            height: 10px;
+            height: 8px;
             overflow: hidden;
-            margin-top: 5px;
         }
 
         #driving-section .progress-fill {
@@ -325,26 +330,25 @@
 
         #driving-section .eta-text {
             color: #888;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
-        /* Presenting */
         #presenting-section .presenting-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             overflow-y: auto;
-            padding-right: 5px;
+            padding-right: 0;
         }
 
         #presenting-section .greeting-box {
             background: rgba(233, 69, 96, 0.10);
             border: 1px solid rgba(233, 69, 96, 0.2);
-            border-radius: 16px;
-            padding: 18px 24px;
+            border-radius: 14px;
+            padding: 14px 18px;
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: #e94560;
             animation: pulse 2s infinite;
         }
@@ -353,12 +357,12 @@
             display: none;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 20px;
-            padding: 20px 25px;
-            gap: 20px;
+            border-radius: 18px;
+            padding: 16px 18px;
+            gap: 16px;
             flex: 1;
-            flex-direction: row;
-            align-items: flex-start;
+            flex-direction: column;
+            align-items: center;
         }
 
         #presenting-section .artifact-display.active {
@@ -366,8 +370,9 @@
         }
 
         #presenting-section .artifact-display .image-area {
-            flex: 0 0 180px;
-            height: 180px;
+            flex: 0 0 140px;
+            width: 140px;
+            height: 140px;
             background: rgba(255, 255, 255, 0.04);
             border-radius: 16px;
             display: flex;
@@ -386,29 +391,30 @@
 
         #presenting-section .artifact-display .info-area {
             flex: 1;
+            width: 100%;
         }
 
         #presenting-section .artifact-display .info-area h3 {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             color: #e94560;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         #presenting-section .artifact-display .info-area .meta {
             color: #888;
-            font-size: 0.85rem;
-            margin-bottom: 10px;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
         }
 
         #presenting-section .artifact-display .info-area .desc {
             color: #ccc;
-            line-height: 1.6;
-            font-size: 0.95rem;
+            line-height: 1.5;
+            font-size: 0.9rem;
         }
 
         #presenting-section .artifact-display .info-area .lang-indicator {
-            margin-top: 12px;
-            font-size: 0.85rem;
+            margin-top: 10px;
+            font-size: 0.8rem;
             color: #4ecdc4;
             background: rgba(78, 205, 196, 0.08);
             padding: 4px 14px;
@@ -418,8 +424,8 @@
 
         .lang-buttons {
             display: flex;
-            gap: 10px;
-            margin-top: 12px;
+            gap: 8px;
+            margin-top: 10px;
             flex-wrap: wrap;
         }
 
@@ -427,10 +433,10 @@
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ccc;
-            padding: 6px 16px;
+            padding: 5px 12px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             transition: 0.3s;
         }
 
@@ -448,9 +454,9 @@
 
         .action-row {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
-            margin-top: 10px;
+            margin-top: 8px;
             justify-content: center;
         }
 
@@ -458,10 +464,10 @@
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ccc;
-            padding: 10px 28px;
+            padding: 8px 20px;
             border-radius: 30px;
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             transition: 0.3s;
             font-weight: 500;
         }
@@ -493,14 +499,13 @@
             background: rgba(78, 205, 196, 0.2);
         }
 
-        /* Admin */
         #admin-section .admin-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 15px;
             overflow-y: auto;
-            padding-right: 5px;
+            padding-right: 0;
         }
 
         #admin-section .admin-login {
@@ -509,7 +514,8 @@
             align-items: center;
             justify-content: center;
             flex: 1;
-            gap: 20px;
+            gap: 15px;
+            padding: 20px 0;
         }
 
         #admin-section .admin-login.hidden {
@@ -520,10 +526,11 @@
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #fff;
-            padding: 12px 20px;
+            padding: 10px 16px;
             border-radius: 12px;
             font-size: 1rem;
-            width: 280px;
+            width: 90%;
+            max-width: 280px;
             text-align: center;
         }
 
@@ -535,7 +542,7 @@
         #admin-section .admin-panel {
             display: none;
             flex-direction: column;
-            gap: 18px;
+            gap: 15px;
         }
 
         #admin-section .admin-panel.active {
@@ -544,29 +551,29 @@
 
         #admin-section .admin-panel h2 {
             color: #e94560;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
         }
 
         #admin-section .admin-panel .setting-group {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 18px 22px;
+            border-radius: 14px;
+            padding: 14px 16px;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
         #admin-section .admin-panel .setting-group label {
             color: #aaa;
-            font-size: 0.9rem;
-            min-width: 100px;
+            font-size: 0.8rem;
+            min-width: 80px;
         }
 
         #admin-section .admin-panel .setting-group input[type="range"] {
             flex: 1;
-            min-width: 150px;
+            min-width: 100px;
             accent-color: #e94560;
             background: rgba(255, 255, 255, 0.06);
             height: 4px;
@@ -576,33 +583,77 @@
         #admin-section .admin-panel .setting-group .val {
             color: #4ecdc4;
             font-weight: 600;
-            min-width: 40px;
+            min-width: 35px;
             text-align: center;
+            font-size: 0.9rem;
         }
 
         #admin-section .admin-panel .setting-group button {
             background: rgba(233, 69, 96, 0.15);
             border: 1px solid rgba(233, 69, 96, 0.2);
             color: #e94560;
-            padding: 6px 20px;
+            padding: 5px 16px;
             border-radius: 20px;
             cursor: pointer;
             transition: 0.3s;
+            font-size: 0.8rem;
         }
 
         #admin-section .admin-panel .setting-group button:hover {
             background: rgba(233, 69, 96, 0.25);
         }
 
+        /* --- New Manual Control Styles --- */
+        .control-group.manual-control {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .control-group.manual-control .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 300px;
+            margin: 5px auto 0;
+        }
+
+        .control-group.manual-control .btn-grid button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 12px 0;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: 0.2s;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .control-group.manual-control .btn-grid button:active {
+            transform: scale(0.92);
+            background: rgba(233, 69, 96, 0.3);
+        }
+
+        .control-group.manual-control .btn-grid .stop-btn {
+            background: rgba(233, 69, 96, 0.2);
+            border-color: #e94560;
+            color: #e94560;
+        }
+
+        .control-group.manual-control .btn-grid .stop-btn:active {
+            background: rgba(233, 69, 96, 0.4);
+        }
+
         .mqtt-status {
-            position: absolute;
-            bottom: 15px;
-            right: 25px;
+            margin-top: 10px;
             font-size: 0.7rem;
             color: #555;
             display: flex;
             align-items: center;
             gap: 8px;
+            justify-content: flex-end;
+            flex-shrink: 0;
         }
 
         .mqtt-status .dot {
@@ -630,50 +681,108 @@
             border-radius: 10px;
         }
 
-        @media (max-width: 700px) {
+        /* --- Responsive Styles --- */
+        @media (max-width: 600px) {
             #app {
-                padding: 15px;
+                padding: 12px 15px;
                 border-radius: 0;
-                max-height: none;
-                height: 100vh;
+                min-height: 100vh;
             }
-
-            #presenting-section .artifact-display {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            #presenting-section .artifact-display .image-area {
-                flex: 0 0 140px;
-                height: 140px;
-                width: 100%;
-                max-width: 200px;
-            }
-
             .top-bar .title {
                 font-size: 1rem;
             }
-
+            .top-bar .status-badge {
+                font-size: 0.6rem;
+                padding: 3px 10px;
+            }
+            .top-bar .admin-btn {
+                font-size: 0.65rem;
+                padding: 3px 10px;
+            }
             #welcome-section h2 {
-                font-size: 1.5rem;
-            }
-
-            .sensor-row {
-                gap: 12px;
-            }
-
-            .sensor-card {
-                padding: 12px 18px;
-                min-width: 80px;
-            }
-
-            .sensor-card .value {
                 font-size: 1.4rem;
             }
-
+            #welcome-section .robot-face {
+                font-size: 3rem;
+            }
+            .sensor-card {
+                padding: 10px 14px;
+                min-width: 80px;
+                max-width: 120px;
+            }
+            .sensor-card .value {
+                font-size: 1.2rem;
+            }
+            .sensor-card .label {
+                font-size: 0.6rem;
+            }
+            #driving-section h2 {
+                font-size: 1.3rem;
+            }
+            #driving-section .coord-display {
+                font-size: 0.9rem;
+                padding: 10px 16px;
+            }
+            #presenting-section .artifact-display .image-area {
+                flex: 0 0 100px;
+                width: 100px;
+                height: 100px;
+                font-size: 3rem;
+            }
+            #presenting-section .artifact-display .info-area h3 {
+                font-size: 1.2rem;
+            }
+            #presenting-section .artifact-display .info-area .desc {
+                font-size: 0.85rem;
+            }
+            .lang-buttons button {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+            .action-row button {
+                font-size: 0.8rem;
+                padding: 6px 16px;
+            }
             #admin-section .admin-panel .setting-group {
                 flex-direction: column;
                 align-items: stretch;
+            }
+            #admin-section .admin-panel .setting-group label {
+                min-width: auto;
+            }
+            #admin-section .admin-panel .setting-group input[type="range"] {
+                min-width: auto;
+            }
+            .mqtt-status {
+                font-size: 0.6rem;
+            }
+            .control-group.manual-control .btn-grid {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #app {
+                padding: 8px 10px;
+            }
+            .top-bar .title {
+                font-size: 0.9rem;
+            }
+            #welcome-section h2 {
+                font-size: 1.2rem;
+            }
+            .sensor-card {
+                padding: 8px 10px;
+                min-width: 60px;
+            }
+            .sensor-card .value {
+                font-size: 1rem;
+            }
+            #presenting-section .artifact-display .image-area {
+                flex: 0 0 80px;
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
             }
         }
     </style>
@@ -719,6 +828,12 @@
                 </div>
 
                 <div id="sensorAlert" class="sensor-alert"></div>
+                
+                <!-- Demo Mode Toggle -->
+                <div style="margin-top: 15px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                    <button id="demoModeBtn" style="background: rgba(78, 205, 196, 0.15); border: 1px solid #4ecdc4; color: #4ecdc4; padding: 8px 24px; border-radius: 30px; cursor: pointer; font-size: 0.9rem;">▶️ Start Demo</button>
+                    <span id="demoStatus" style="color: #888; font-size: 0.85rem; align-self: center;">Demo: Off</span>
+                </div>
             </div>
         </div>
 
@@ -798,6 +913,23 @@
                         <span class="val" id="speedVal">0.5</span>
                         <button id="applySpeedBtn">Apply</button>
                     </div>
+                    
+                    <!-- NEW: Manual Control Section -->
+                    <div class="setting-group control-group manual-control">
+                        <label style="width: 100%;">🕹️ Manual Control</label>
+                        <div class="btn-grid">
+                            <button class="dir-btn" data-dir="forward">⬆️</button>
+                            <button class="dir-btn" data-dir="left">⬅️</button>
+                            <button class="dir-btn" data-dir="stop" style="background: rgba(233, 69, 96, 0.2); border-color: #e94560; color: #e94560;">⏹️</button>
+                            <button class="dir-btn" data-dir="right">➡️</button>
+                            <button class="dir-btn" data-dir="backward">⬇️</button>
+                            <button class="dir-btn" data-dir="rotate_left">↺</button>
+                            <button class="dir-btn" data-dir="rotate_right">↻</button>
+                        </div>
+                        <div style="width: 100%; text-align: center; font-size: 0.8rem; color: #888; margin-top: 5px;">
+                            <span id="manualStatus">Tap a direction to send command</span>
+                        </div>
+                    </div>
 
                     <div class="setting-group">
                         <label>Robot State</label>
@@ -838,6 +970,7 @@
                 topicCrowd: 'museum/crowd',
                 topicState: 'museum/state',
                 topicRobotPos: 'museum/robot_position',
+                topicManualControl: 'museum/manual_control', // NEW topic
                 adminPassword: 'museum2025'
             };
 
@@ -845,12 +978,17 @@
             // STATE
             // ==========================================
             let currentState = 'idle';
-            let currentArtifactData = null; // full artifact object
-            let currentLang = 'en'; // 'ms', 'en', 'fr'
+            let currentArtifactData = null;
+            let currentLang = 'en';
             let isSpeaking = false;
-            let speechQueue = [];
+            let demoMode = false;
+            let demoInterval = null;
+            let mqttClient = null;
+            let mqttConnected = false;
 
-            // DOM refs
+            // ==========================================
+            // DOM REFS
+            // ==========================================
             const sections = {
                 welcome: document.getElementById('welcome-section'),
                 driving: document.getElementById('driving-section'),
@@ -876,6 +1014,8 @@
             const langButtons = document.querySelectorAll('.lang-buttons button');
             const replayBtn = document.getElementById('replayBtn');
             const doneBtn = document.getElementById('doneBtn');
+            const demoModeBtn = document.getElementById('demoModeBtn');
+            const demoStatus = document.getElementById('demoStatus');
             const adminToggleBtn = document.getElementById('adminToggleBtn');
             const adminLogin = document.getElementById('adminLogin');
             const adminPanel = document.getElementById('adminPanel');
@@ -893,15 +1033,138 @@
             const applyRangeBtn = document.getElementById('applyRangeBtn');
             const applySpeedBtn = document.getElementById('applySpeedBtn');
             const adminResetBtn = document.getElementById('adminResetBtn');
+            const manualStatus = document.getElementById('manualStatus');
             const mqttDot = document.getElementById('mqttDot');
             const mqttLabel = document.getElementById('mqttLabel');
 
             // ==========================================
+            // DEMO MODE
+            // ==========================================
+            const demoArtifacts = [{
+                id: 'vase',
+                name: 'Ancient Ming Vase',
+                origin: 'China',
+                year: '15th Century',
+                material: 'Porcelain',
+                emoji: '🏺',
+                description: 'Exquisite porcelain vase from the Ming Dynasty (1368-1644).',
+                description_ms: 'Pasu porselin yang indah dari Dinasti Ming (1368-1644).',
+                description_fr: 'Vase en porcelaine exquis de la dynastie Ming (1368-1644).',
+                year_ms: 'Abad ke-15',
+                year_fr: '15ème siècle',
+                origin_ms: 'China',
+                origin_fr: 'Chine',
+                material_ms: 'Porselin',
+                material_fr: 'Porcelaine'
+            }, {
+                id: 'bronze',
+                name: 'Roman Bronze Sculpture',
+                origin: 'Roman Empire',
+                year: '100 AD',
+                material: 'Bronze',
+                emoji: '🗿',
+                description: 'Magnificent bronze sculpture of a Roman warrior.',
+                description_ms: 'Patung gangsa yang megah seorang pahlawan Rom.',
+                description_fr: 'Magnifique sculpture en bronze d\'un guerrier romain.',
+                year_ms: '100 Masihi',
+                year_fr: '100 après J.-C.',
+                origin_ms: 'Empayar Rom',
+                origin_fr: 'Empire romain',
+                material_ms: 'Gangsa',
+                material_fr: 'Bronze'
+            }, {
+                id: 'coins',
+                name: 'Ancient Coin Collection',
+                origin: 'Multiple Civilizations',
+                year: '500 BC - 100 AD',
+                material: 'Various Metals',
+                emoji: '🪙',
+                description: 'Rare collection of 25 coins from ancient civilizations.',
+                description_ms: 'Koleksi jarang 25 syiling dari tamadun purba.',
+                description_fr: 'Rare collection de 25 pièces de civilisations anciennes.',
+                year_ms: '500 SM - 100 Masihi',
+                year_fr: '500 av. J.-C. - 100 après J.-C.',
+                origin_ms: 'Pelbagai Tamadun',
+                origin_fr: 'Civilisations multiples',
+                material_ms: 'Pelbagai Logam',
+                material_fr: 'Métaux variés'
+            }];
+
+            function startDemo() {
+                if (demoMode) return;
+                demoMode = true;
+                demoModeBtn.textContent = '⏹️ Stop Demo';
+                demoStatus.textContent = 'Demo: Running';
+                demoStatus.style.color = '#4ecdc4';
+
+                // Simulate sensor data
+                let temp = 24;
+                let humid = 55;
+                let crowdCount = 0;
+                let step = 0;
+
+                demoInterval = setInterval(() => {
+                    step++;
+                    // Simulate temperature fluctuation
+                    temp = 24 + Math.sin(step * 0.1) * 2;
+                    humid = 55 + Math.sin(step * 0.15 + 1) * 5;
+
+                    // Simulate crowd detection (every 8 seconds)
+                    if (step % 8 === 0) {
+                        crowdCount = Math.floor(Math.random() * 4) + 1;
+                    } else if (step % 8 === 4) {
+                        crowdCount = 0;
+                    }
+
+                    // Publish simulated data
+                    handleSensor({ temperature: temp, humidity: humid });
+                    if (crowdCount >= 2) {
+                        handleCrowd({ count: crowdCount, moving: true, target_x: (Math.random() * 3 + 1).toFixed(1),
+                            target_y: (Math.random() * 3 + 1).toFixed(1), progress: 0.5, eta: 5.0 });
+                        handleState({ state: 'moving' });
+                    } else {
+                        handleCrowd({ count: crowdCount, moving: false });
+                        if (crowdCount === 0) {
+                            handleState({ state: 'idle' });
+                        }
+                    }
+
+                    // Simulate artifact detection (every 20 seconds)
+                    if (step % 20 === 0 && crowdCount >= 2) {
+                        const artifact = demoArtifacts[Math.floor(Math.random() * demoArtifacts.length)];
+                        handleArtifact(artifact);
+                        handleWelcome({ message: 'Hello! Welcome to the museum!' });
+                    }
+
+                    // Update crowd count display (already done in handleCrowd)
+                }, 2000);
+            }
+
+            function stopDemo() {
+                if (demoInterval) {
+                    clearInterval(demoInterval);
+                    demoInterval = null;
+                }
+                demoMode = false;
+                demoModeBtn.textContent = '▶️ Start Demo';
+                demoStatus.textContent = 'Demo: Off';
+                demoStatus.style.color = '#888';
+                // Reset to idle
+                handleState({ state: 'idle' });
+                handleCrowd({ count: 0, moving: false });
+            }
+
+            demoModeBtn.addEventListener('click', function() {
+                if (demoMode) {
+                    stopDemo();
+                } else {
+                    startDemo();
+                }
+            });
+
+            // ==========================================
             // MQTT CLIENT
             // ==========================================
-            let mqttClient = null;
-            let mqttConnected = false;
-
             function connectMQTT() {
                 try {
                     mqttClient = mqtt.connect(CONFIG.mqttBroker, {
@@ -954,7 +1217,6 @@
             function handleMqttMessage(topic, payload) {
                 try {
                     const data = JSON.parse(payload);
-
                     switch (topic) {
                         case CONFIG.topicArtifact:
                             handleArtifact(data);
@@ -989,12 +1251,10 @@
             function handleArtifact(data) {
                 console.log('🏺 Artifact detected:', data);
                 currentArtifactData = data;
-                // Switch to presenting if not already
                 if (currentState !== 'presenting') {
                     switchSection('presenting');
                 }
                 displayArtifact(data, currentLang);
-                // Auto-speak the artifact in the current language
                 speakCurrentArtifact();
             }
 
@@ -1074,7 +1334,6 @@
             function displayArtifact(artifact, lang) {
                 if (!artifact) return;
 
-                // Select localized fields
                 let name = artifact.name || 'Unknown Artifact';
                 let desc = artifact.description || 'No description.';
                 let year = artifact.year || '';
@@ -1094,7 +1353,6 @@
                     material = artifact.material_fr || material;
                 }
 
-                // Update UI
                 artifactName.textContent = name;
                 artifactMeta.textContent = [origin, year, material].filter(Boolean).join(' • ') || 'Unknown origin';
                 artifactDesc.textContent = desc;
@@ -1107,16 +1365,20 @@
 
                 artifactDisplay.classList.add('active');
 
-                // Store the full localized text for speech
-                // We'll speak: name + description (plus maybe origin/year? keep it concise)
+                // Store text for TTS
                 window.currentSpeakText = `${name}. ${desc}`;
                 window.currentLangCode = lang === 'ms' ? 'ms-MY' : (lang === 'fr' ? 'fr-FR' : 'en-US');
+                // Store voice name for Edge TTS (prefer neural voices)
+                const edgeVoiceMap = {
+                    'ms-MY': 'ms-MY-YasminNeural',
+                    'fr-FR': 'fr-FR-DeniseNeural',
+                    'en-US': 'en-US-AriaNeural'
+                };
+                window.currentEdgeVoice = edgeVoiceMap[window.currentLangCode] || 'en-US-AriaNeural';
 
-                // Update language indicator
                 const langNames = { 'ms': 'Bahasa Melayu', 'en': 'English', 'fr': 'Français' };
                 langIndicator.textContent = `🔊 Speaking: ${langNames[lang] || 'English'}`;
 
-                // Highlight active language button
                 langButtons.forEach(btn => {
                     btn.classList.remove('active');
                     if (btn.dataset.lang === lang) {
@@ -1126,57 +1388,87 @@
             }
 
             // ==========================================
-            // SPEAK CURRENT ARTIFACT
+            // SPEAK CURRENT ARTIFACT (Edge TTS)
             // ==========================================
-            function speakCurrentArtifact() {
+            async function speakCurrentArtifact() {
                 if (!window.currentSpeakText) return;
                 const text = window.currentSpeakText;
-                const langCode = window.currentLangCode || 'en-US';
+                const voice = window.currentEdgeVoice || 'en-US-AriaNeural';
 
-                // Cancel any ongoing speech
+                // Cancel any ongoing speech (if using Web Speech API fallback)
                 if (window.speechSynthesis) {
                     window.speechSynthesis.cancel();
                 }
 
+                // Update UI
+                langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`;
+
+                try {
+                    // Use Edge TTS Browser library (no API key required)
+                    const tts = new EdgeTTSBrowser();
+                    // Set voice and text
+                    tts.tts.setVoiceParams({
+                        text: text,
+                        voice: voice,
+                    });
+                    // Generate audio blob
+                    const fileName = `output-${Date.now()}.mp3`;
+                    const blob = await tts.ttsToFile(fileName);
+                    const url = URL.createObjectURL(blob);
+                    // Play audio
+                    const audio = new Audio(url);
+                    audio.onended = function() {
+                        langIndicator.textContent = `✅ Finished speaking (${voice})`;
+                        URL.revokeObjectURL(url);
+                    };
+                    audio.onerror = function(e) {
+                        console.error('❌ Audio playback error:', e);
+                        langIndicator.textContent = `❌ Speech error`;
+                        // Fallback to Web Speech API if Edge TTS fails
+                        fallbackSpeak(text, window.currentLangCode);
+                    };
+                    audio.play();
+                } catch (e) {
+                    console.error('❌ Edge TTS error:', e);
+                    langIndicator.textContent = `❌ TTS error, trying fallback...`;
+                    // Fallback to Web Speech API
+                    fallbackSpeak(text, window.currentLangCode);
+                }
+            }
+
+            // ==========================================
+            // FALLBACK SPEAK (Web Speech API)
+            // ==========================================
+            function fallbackSpeak(text, langCode) {
+                if (!window.speechSynthesis) {
+                    langIndicator.textContent = `❌ Speech not supported`;
+                    return;
+                }
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = langCode;
+                utterance.lang = langCode || 'en-US';
                 utterance.rate = 0.9;
                 utterance.pitch = 1.0;
 
-                // Try to find a matching voice
-                if (window.speechSynthesis) {
-                    const voices = window.speechSynthesis.getVoices();
-                    // 1. exact match
-                    let voice = voices.find(v => v.lang === langCode);
-                    if (!voice) {
-                        // 2. prefix match (e.g., 'ms' for 'ms-MY')
-                        const prefix = langCode.split('-')[0];
-                        voice = voices.find(v => v.lang.startsWith(prefix));
-                    }
-                    if (voice) {
-                        utterance.voice = voice;
-                        console.log(`🗣️ Using voice: ${voice.name} (${voice.lang})`);
-                    } else {
-                        console.warn(`⚠️ No voice found for ${langCode}, using default.`);
-                    }
+                // Try to find matching voice
+                const voices = window.speechSynthesis.getVoices();
+                let voice = voices.find(v => v.lang === langCode);
+                if (!voice) {
+                    const prefix = (langCode || 'en').split('-')[0];
+                    voice = voices.find(v => v.lang.startsWith(prefix));
                 }
+                if (voice) utterance.voice = voice;
 
                 utterance.onstart = function() {
-                    isSpeaking = true;
-                    langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`;
+                    langIndicator.textContent = `🔊 Speaking (fallback)...`;
                 };
-
                 utterance.onend = function() {
-                    isSpeaking = false;
-                    langIndicator.textContent = `✅ Finished speaking (${langCode})`;
+                    langIndicator.textContent = `✅ Finished speaking (fallback)`;
                 };
-
                 utterance.onerror = function(e) {
-                    console.error('❌ Speech error:', e);
-                    isSpeaking = false;
-                    langIndicator.textContent = `❌ Speech error`;
+                    console.error('❌ Fallback speech error:', e);
+                    langIndicator.textContent = `❌ Speech failed`;
                 };
-
                 window.speechSynthesis.speak(utterance);
             }
 
@@ -1210,6 +1502,7 @@
                 if (alertMsg) {
                     sensorAlert.textContent = alertMsg;
                     sensorAlert.className = 'sensor-alert ' + alertClass;
+                    sensorAlert.style.display = 'block';
                 } else {
                     sensorAlert.textContent = '✅ Temperature and humidity are within safe range.';
                     sensorAlert.className = 'sensor-alert';
@@ -1311,7 +1604,65 @@
                 if (confirm('Reset robot to idle state?')) {
                     publishMqtt('museum/admin/reset', { action: 'reset' });
                     switchSection('welcome');
+                    // Also stop demo if running
+                    if (demoMode) stopDemo();
                 }
+            });
+
+            // ==========================================
+            // MANUAL CONTROL
+            // ==========================================
+            const dirButtons = document.querySelectorAll('.dir-btn');
+
+            // Map direction to velocity commands
+            const dirMap = {
+                'forward': { x: 0.3, y: 0, z: 0 },
+                'backward': { x: -0.3, y: 0, z: 0 },
+                'left': { x: 0, y: 0.3, z: 0 },
+                'right': { x: 0, y: -0.3, z: 0 },
+                'rotate_left': { x: 0, y: 0, z: 0.5 },
+                'rotate_right': { x: 0, y: 0, z: -0.5 },
+                'stop': { x: 0, y: 0, z: 0 }
+            };
+
+            dirButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const dir = this.dataset.dir;
+                    const cmd = dirMap[dir];
+                    if (!cmd) return;
+
+                    // Publish to MQTT
+                    publishMqtt(CONFIG.topicManualControl, {
+                        command: dir,
+                        linear_x: cmd.x,
+                        linear_y: cmd.y,
+                        angular_z: cmd.z
+                    });
+
+                    // Update status
+                    const dirNames = {
+                        'forward': '⬆️ Forward',
+                        'backward': '⬇️ Backward',
+                        'left': '⬅️ Left',
+                        'right': '➡️ Right',
+                        'rotate_left': '↺ Rotate Left',
+                        'rotate_right': '↻ Rotate Right',
+                        'stop': '⏹️ Stop'
+                    };
+                    manualStatus.textContent = `🚀 Sent: ${dirNames[dir] || dir}`;
+                    manualStatus.style.color = '#4ecdc4';
+
+                    // Reset status after 2 seconds
+                    setTimeout(() => {
+                        manualStatus.textContent = 'Tap a direction to send command';
+                        manualStatus.style.color = '#888';
+                    }, 2000);
+                });
+
+                // Touch feedback for mobile
+                btn.addEventListener('touchstart', function(e) {
+                    // Just to ensure touch events work
+                }, { passive: true });
             });
 
             // ==========================================
@@ -1331,20 +1682,17 @@
             // PRESENTING BUTTONS
             // ==========================================
 
-            // Language buttons
             langButtons.forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     const lang = this.dataset.lang;
                     currentLang = lang;
                     if (currentArtifactData) {
                         displayArtifact(currentArtifactData, lang);
-                        // Auto-speak when language changes
                         speakCurrentArtifact();
                     }
                 });
             });
 
-            // Replay button
             replayBtn.addEventListener('click', function() {
                 if (currentArtifactData) {
                     speakCurrentArtifact();
@@ -1353,7 +1701,6 @@
                 }
             });
 
-            // Done button
             doneBtn.addEventListener('click', function() {
                 publishMqtt('museum/done', { action: 'done' });
                 artifactDisplay.classList.remove('active');
@@ -1361,10 +1708,11 @@
                 switchSection('welcome');
                 sensorAlert.style.display = 'none';
                 sensorAlert.className = 'sensor-alert';
+                if (demoMode) stopDemo();
             });
 
             // ==========================================
-            // LOAD VOICES (for TTS)
+            // LOAD VOICES (for Web Speech fallback)
             // ==========================================
             if (window.speechSynthesis) {
                 window.speechSynthesis.getVoices();
@@ -1378,6 +1726,7 @@
             // ==========================================
             console.log('🏛️ Museum Guide Webpage Starting...');
             console.log('📡 Connecting to MQTT broker:', CONFIG.mqttBroker);
+            console.log('🗣️ Using Edge TTS for high-quality voices (no API key required)');
 
             connectMQTT();
             switchSection('welcome');
@@ -1385,7 +1734,7 @@
             humidDisplay.textContent = '--%';
             crowdCountDisplay.textContent = '0';
 
-            console.log('✅ Ready! Waiting for MQTT data...');
+            console.log('✅ Ready! Use "Start Demo" to simulate robot data.');
 
         })();
     </script>
