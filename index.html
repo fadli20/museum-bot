@@ -8,9 +8,6 @@
     <!-- MQTT Library -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js">
     </script>
-    <!-- Puter.js TTS Library (No API Key Required) -->
-    <script src="https://js.puter.com/v2/">
-    </script>
 
     <style>
         /* ==========================================
@@ -951,7 +948,7 @@
     </div>
 
     <!-- ==========================================================
-    JAVASCRIPT
+    JAVASCRIPT – Web Speech API Only (No external TTS libraries)
     ========================================================== -->
     <script>
         (function() {
@@ -1416,91 +1413,53 @@
             }
 
             // ==========================================
-            // SPEAK CURRENT ARTIFACT (Puter.js)
+            // SPEAK CURRENT ARTIFACT (Web Speech API)
             // ==========================================
-            async function speakCurrentArtifact() {
+            function speakCurrentArtifact() {
                 if (!window.currentSpeakText) return;
                 const text = window.currentSpeakText;
+                const langCode = window.currentLangCode || 'en-US';
 
+                // Cancel any ongoing speech
                 if (window.speechSynthesis) {
                     window.speechSynthesis.cancel();
                 }
 
-                langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`;
-
-                const langMap = {
-                    'ms-MY': 'ms-MY',
-                    'en-US': 'en-US',
-                    'fr-FR': 'fr-FR'
-                };
-                const language = langMap[window.currentLangCode] || 'en-US';
-
-                const voiceMap = {
-                    'ms-MY': 'Yasmin',
-                    'en-US': 'Joanna',
-                    'fr-FR': 'Celine'
-                };
-                const voice = voiceMap[language] || 'Joanna';
-
-                try {
-                    // Use Puter.js TTS
-                    const audio = await puter.ai.txt2speech(text, {
-                        language: language,
-                        voice: voice,
-                        engine: 'neural',
-                    });
-
-                    audio.play();
-
-                    audio.onended = function() {
-                        langIndicator.textContent = `✅ Finished speaking (Puter.js)`;
-                    };
-
-                    audio.onerror = function(e) {
-                        console.error('❌ Puter.js audio error:', e);
-                        langIndicator.textContent = `❌ TTS error, using fallback...`;
-                        fallbackSpeak(text, window.currentLangCode);
-                    };
-
-                } catch (error) {
-                    console.warn('⚠️ Puter.js TTS failed:', error);
-                    langIndicator.textContent = `⚠️ TTS error, using fallback...`;
-                    fallbackSpeak(text, window.currentLangCode);
-                }
-            }
-
-            // ==========================================
-            // FALLBACK SPEAK (Web Speech API)
-            // ==========================================
-            function fallbackSpeak(text, langCode) {
-                if (!window.speechSynthesis) {
-                    langIndicator.textContent = `❌ Speech not supported`;
-                    return;
-                }
-                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = langCode || 'en-US';
+                utterance.lang = langCode;
                 utterance.rate = 0.9;
                 utterance.pitch = 1.0;
 
+                // Try to find a matching voice
                 const voices = window.speechSynthesis.getVoices();
                 let voice = voices.find(v => v.lang === langCode);
                 if (!voice) {
-                    const prefix = (langCode || 'en').split('-')[0];
+                    const prefix = langCode.split('-')[0];
                     voice = voices.find(v => v.lang.startsWith(prefix));
                 }
-                if (voice) utterance.voice = voice;
+                if (voice) {
+                    utterance.voice = voice;
+                    console.log(`🗣️ Using voice: ${voice.name} (${voice.lang})`);
+                } else {
+                    console.warn(`⚠️ No voice found for ${langCode}, using default.`);
+                }
 
                 utterance.onstart = function() {
-                    langIndicator.textContent = `🔊 Speaking (fallback)...`;
+                    isSpeaking = true;
+                    langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`;
                 };
+
                 utterance.onend = function() {
-                    langIndicator.textContent = `✅ Finished speaking (fallback)`;
+                    isSpeaking = false;
+                    langIndicator.textContent = `✅ Finished speaking (${langCode})`;
                 };
+
                 utterance.onerror = function(e) {
-                    console.error('❌ Fallback speech error:', e);
-                    langIndicator.textContent = `❌ Speech failed`;
+                    console.error('❌ Speech error:', e);
+                    isSpeaking = false;
+                    langIndicator.textContent = `❌ Speech error`;
                 };
+
                 window.speechSynthesis.speak(utterance);
             }
 
@@ -1742,7 +1701,7 @@
             });
 
             // ==========================================
-            // LOAD VOICES (for Web Speech fallback)
+            // LOAD VOICES (for Web Speech)
             // ==========================================
             if (window.speechSynthesis) {
                 window.speechSynthesis.getVoices();
@@ -1756,7 +1715,7 @@
             // ==========================================
             console.log('🏛️ Museum Guide Webpage Starting...');
             console.log('📡 Connecting to MQTT broker:', CONFIG.mqttBroker);
-            console.log('🗣️ Using Puter.js for TTS (no API key required)');
+            console.log('🗣️ Using Web Speech API (built-in browser TTS)');
 
             connectMQTT();
             switchSection('welcome');
