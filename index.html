@@ -1583,48 +1583,53 @@
                     .catch(err => alert('Delete failed: ' + err));
             }
 
-            function saveArtifact() {
-                const artifact = {
-                    id: af_id.value.trim(),
-                    name: af_name.value.trim(),
-                    name_ms: af_name_ms.value.trim(),
-                    name_fr: af_name_fr.value.trim(),
-                    category: af_category.value.trim(),
-                    category_ms: af_category_ms.value.trim(),
-                    category_fr: af_category_fr.value.trim(),
-                    year: af_year.value.trim(),
-                    year_ms: af_year_ms.value.trim(),
-                    year_fr: af_year_fr.value.trim(),
-                    origin: af_origin.value.trim(),
-                    origin_ms: af_origin_ms.value.trim(),
-                    origin_fr: af_origin_fr.value.trim(),
-                    material: af_material.value.trim(),
-                    material_ms: af_material_ms.value.trim(),
-                    material_fr: af_material_fr.value.trim(),
-                    emoji: af_emoji.value.trim(),
-                    image_url: af_image_url.value.trim(),
-                    description: af_description.value.trim(),
-                    description_ms: af_description_ms.value.trim(),
-                    description_fr: af_description_fr.value.trim()
-                };
-                if (!artifact.id) { alert('ID is required.'); return; }
-                if (!artifact.name) { alert('Name is required.'); return; }
-                // Send to server
-                fetch(CONFIG.sheetApiUrl + '?action=updateArtifact', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(artifact)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.error) { alert('Save error: ' + data.error); return; }
-                    alert('Artifact saved.');
-                    artifactForm.classList.remove('active');
-                    editingArtifactId = null;
-                    loadArtifactTable();
-                })
-                .catch(err => alert('Save failed: ' + err));
-            }
+function saveArtifact() {
+    const artifact = {
+        id: af_id.value.trim(),
+        name: af_name.value.trim(),
+        name_ms: af_name_ms.value.trim(),
+        name_fr: af_name_fr.value.trim(),
+        category: af_category.value.trim(),
+        category_ms: af_category_ms.value.trim(),
+        category_fr: af_category_fr.value.trim(),
+        year: af_year.value.trim(),
+        year_ms: af_year_ms.value.trim(),
+        year_fr: af_year_fr.value.trim(),
+        origin: af_origin.value.trim(),
+        origin_ms: af_origin_ms.value.trim(),
+        origin_fr: af_origin_fr.value.trim(),
+        material: af_material.value.trim(),
+        material_ms: af_material_ms.value.trim(),
+        material_fr: af_material_fr.value.trim(),
+        emoji: af_emoji.value.trim(),
+        image_url: af_image_url.value.trim(),
+        description: af_description.value.trim(),
+        description_ms: af_description_ms.value.trim(),
+        description_fr: af_description_fr.value.trim()
+    };
+    if (!artifact.id) { alert('ID is required.'); return; }
+    if (!artifact.name) { alert('Name is required.'); return; }
+
+    // Build form-urlencoded data
+    const formData = new URLSearchParams();
+    formData.append('action', 'updateArtifact');
+    formData.append('data', JSON.stringify(artifact));
+
+    fetch(CONFIG.sheetApiUrl, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) { alert('Save error: ' + data.error); return; }
+        alert('Artifact saved.');
+        artifactForm.classList.remove('active');
+        editingArtifactId = null;
+        loadArtifactTable();
+    })
+    .catch(err => alert('Save failed: ' + err));
+}
 
             newArtifactBtn.addEventListener('click', function() {
                 editingArtifactId = null;
