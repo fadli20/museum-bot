@@ -1057,6 +1057,9 @@
             border-radius: 10px;
         }
 
+        /* ==========================================
+           RESPONSIVE
+           ========================================== */
         @media (max-width: 800px) {
             .chart-grid {
                 grid-template-columns: 1fr;
@@ -1194,7 +1197,7 @@
                 <h2>Welcome to the <strong>Museum</strong></h2>
                 <p class="sub">I'm your autonomous guide. I'll detect crowds, move to them, and present artifacts.</p>
 
-                <!-- Sensor Cards – includes crowd count -->
+                <!-- Sensor Cards – INCLUDES CROWD -->
                 <div class="sensor-row">
                     <div class="sensor-card">
                         <div class="value temp" id="tempDisplay">--</div>
@@ -1317,7 +1320,7 @@
                             <button id="refreshConfigBtn">🔄 Refresh Config</button>
                         </div>
 
-                        <!-- Detection Range (Min & Max) -->
+                        <!-- Detection Range -->
                         <div class="setting-group">
                             <label>Detection Range</label>
                             <input type="range" id="minRangeSlider" min="0.1" max="5.0" step="0.1" value="0.5" />
@@ -1329,7 +1332,7 @@
                             <div class="description">Minimum and maximum detection distance (m)</div>
                         </div>
 
-                        <!-- Angle Min & Max -->
+                        <!-- Angle -->
                         <div class="setting-group">
                             <label>Detection Angle</label>
                             <input type="number" id="angleMinInput" min="-180" max="180" step="1" value="-90" style="flex:0 0 80px;" />
@@ -1340,7 +1343,7 @@
                             <div class="description">Left and right angle boundaries (degrees)</div>
                         </div>
 
-                        <!-- Sensitivity (eps) -->
+                        <!-- Sensitivity -->
                         <div class="setting-group">
                             <label>Sensitivity (eps)</label>
                             <input type="range" id="sensitivitySlider" min="0.05" max="0.5" step="0.01" value="0.15" />
@@ -1366,7 +1369,7 @@
                             <div class="description">Distance an object must move to be considered moving (m)</div>
                         </div>
 
-                        <!-- Movement Speed (max_speed) -->
+                        <!-- Movement Speed -->
                         <div class="setting-group">
                             <label>Movement Speed</label>
                             <input type="range" id="speedSlider" min="0.1" max="1.0" step="0.05" value="0.5" />
@@ -1400,7 +1403,7 @@
                             <div class="description">Consecutive detections required to confirm a person</div>
                         </div>
 
-                        <!-- Save All Button -->
+                        <!-- Save All -->
                         <div class="save-all-wrap">
                             <button id="saveAllConfigBtn">💾 Save All Config</button>
                         </div>
@@ -1589,120 +1592,119 @@
                 presenting: document.getElementById('presenting-section'),
                 admin: document.getElementById('admin-section'),
             };
-            const stateLabel = document.getElementById('stateLabel');
-            const tempDisplay = document.getElementById('tempDisplay');
-            const humidDisplay = document.getElementById('humidDisplay');
-            const crowdCountDisplay = document.getElementById('crowdCountDisplay');
-            const sensorAlert = document.getElementById('sensorAlert');
-            const coordDisplay = document.getElementById('coordDisplay');
-            const progressFill = document.getElementById('progressFill');
-            const etaDisplay = document.getElementById('etaDisplay');
-            const greetingBox = document.getElementById('greetingBox');
-            const artifactDisplay = document.getElementById('artifactDisplay');
-            const artifactImage = document.getElementById('artifactImage');
-            const artifactName = document.getElementById('artifactName');
-            const artifactMeta = document.getElementById('artifactMeta');
-            const artifactDesc = document.getElementById('artifactDesc');
-            const langIndicator = document.getElementById('langIndicator');
-            const langButtons = document.querySelectorAll('.lang-buttons button');
-            const replayBtn = document.getElementById('replayBtn');
-            const doneBtn = document.getElementById('doneBtn');
-            const demoModeBtn = document.getElementById('demoModeBtn');
-            const demoStatus = document.getElementById('demoStatus');
-            const adminToggleBtn = document.getElementById('adminToggleBtn');
-            const adminLogin = document.getElementById('adminLogin');
-            const adminPanel = document.getElementById('adminPanel');
-            const adminPassword = document.getElementById('adminPassword');
-            const adminLoginBtn = document.getElementById('adminLoginBtn');
-            const adminLoginError = document.getElementById('adminLoginError');
-            const adminLogoutBtn = document.getElementById('adminLogoutBtn');
-            const adminStateLabel = document.getElementById('adminStateLabel');
-            const manualStatus = document.getElementById('manualStatus');
-            const mqttDot = document.getElementById('mqttDot');
-            const mqttLabel = document.getElementById('mqttLabel');
-            const resetRobotBtn = document.getElementById('resetRobotBtn');
-            const configLoadStatus = document.getElementById('configLoadStatus');
-            const refreshConfigBtn = document.getElementById('refreshConfigBtn');
+
+            // Ensure all elements exist before using them
+            const getEl = (id) => document.getElementById(id);
+
+            const stateLabel = getEl('stateLabel');
+            const adminStateLabel = getEl('adminStateLabel');
+            const tempDisplay = getEl('tempDisplay');
+            const humidDisplay = getEl('humidDisplay');
+            const crowdCountDisplay = getEl('crowdCountDisplay');
+            const sensorAlert = getEl('sensorAlert');
+            const coordDisplay = getEl('coordDisplay');
+            const progressFill = getEl('progressFill');
+            const etaDisplay = getEl('etaDisplay');
+            const greetingBox = getEl('greetingBox');
+            const artifactDisplay = getEl('artifactDisplay');
+            const artifactImage = getEl('artifactImage');
+            const artifactName = getEl('artifactName');
+            const artifactMeta = getEl('artifactMeta');
+            const artifactDesc = getEl('artifactDesc');
+            const langIndicator = getEl('langIndicator');
+            const replayBtn = getEl('replayBtn');
+            const doneBtn = getEl('doneBtn');
+            const demoModeBtn = getEl('demoModeBtn');
+            const demoStatus = getEl('demoStatus');
+            const adminToggleBtn = getEl('adminToggleBtn');
+            const adminLogin = getEl('adminLogin');
+            const adminPanel = getEl('adminPanel');
+            const adminPassword = getEl('adminPassword');
+            const adminLoginBtn = getEl('adminLoginBtn');
+            const adminLoginError = getEl('adminLoginError');
+            const adminLogoutBtn = getEl('adminLogoutBtn');
+            const manualStatus = getEl('manualStatus');
+            const mqttDot = getEl('mqttDot');
+            const mqttLabel = getEl('mqttLabel');
+            const resetRobotBtn = getEl('resetRobotBtn');
+            const configLoadStatus = getEl('configLoadStatus');
+            const refreshConfigBtn = getEl('refreshConfigBtn');
 
             // Config controls
-            const minRangeSlider = document.getElementById('minRangeSlider');
-            const maxRangeSlider = document.getElementById('maxRangeSlider');
-            const minRangeVal = document.getElementById('minRangeVal');
-            const maxRangeVal = document.getElementById('maxRangeVal');
-            const applyRangeBtn = document.getElementById('applyRangeBtn');
-
-            const angleMinInput = document.getElementById('angleMinInput');
-            const angleMaxInput = document.getElementById('angleMaxInput');
-            const applyAngleBtn = document.getElementById('applyAngleBtn');
-
-            const sensitivitySlider = document.getElementById('sensitivitySlider');
-            const sensitivityVal = document.getElementById('sensitivityVal');
-            const applySensitivityBtn = document.getElementById('applySensitivityBtn');
-
-            const minSamplesInput = document.getElementById('minSamplesInput');
-            const applyMinSamplesBtn = document.getElementById('applyMinSamplesBtn');
-
-            const movementThresholdSlider = document.getElementById('movementThresholdSlider');
-            const movementThresholdVal = document.getElementById('movementThresholdVal');
-            const applyMovementThresholdBtn = document.getElementById('applyMovementThresholdBtn');
-
-            const speedSlider = document.getElementById('speedSlider');
-            const speedVal = document.getElementById('speedVal');
-            const applySpeedBtn = document.getElementById('applySpeedBtn');
-
-            const arrivalDistanceSlider = document.getElementById('arrivalDistanceSlider');
-            const arrivalDistanceVal = document.getElementById('arrivalDistanceVal');
-            const applyArrivalDistanceBtn = document.getElementById('applyArrivalDistanceBtn');
-
-            const maxStaticFramesInput = document.getElementById('maxStaticFramesInput');
-            const applyMaxStaticFramesBtn = document.getElementById('applyMaxStaticFramesBtn');
-
-            const minDetectionsInput = document.getElementById('minDetectionsInput');
-            const applyMinDetectionsBtn = document.getElementById('applyMinDetectionsBtn');
-
-            const saveAllConfigBtn = document.getElementById('saveAllConfigBtn');
+            const minRangeSlider = getEl('minRangeSlider');
+            const maxRangeSlider = getEl('maxRangeSlider');
+            const minRangeVal = getEl('minRangeVal');
+            const maxRangeVal = getEl('maxRangeVal');
+            const applyRangeBtn = getEl('applyRangeBtn');
+            const angleMinInput = getEl('angleMinInput');
+            const angleMaxInput = getEl('angleMaxInput');
+            const applyAngleBtn = getEl('applyAngleBtn');
+            const sensitivitySlider = getEl('sensitivitySlider');
+            const sensitivityVal = getEl('sensitivityVal');
+            const applySensitivityBtn = getEl('applySensitivityBtn');
+            const minSamplesInput = getEl('minSamplesInput');
+            const applyMinSamplesBtn = getEl('applyMinSamplesBtn');
+            const movementThresholdSlider = getEl('movementThresholdSlider');
+            const movementThresholdVal = getEl('movementThresholdVal');
+            const applyMovementThresholdBtn = getEl('applyMovementThresholdBtn');
+            const speedSlider = getEl('speedSlider');
+            const speedVal = getEl('speedVal');
+            const applySpeedBtn = getEl('applySpeedBtn');
+            const arrivalDistanceSlider = getEl('arrivalDistanceSlider');
+            const arrivalDistanceVal = getEl('arrivalDistanceVal');
+            const applyArrivalDistanceBtn = getEl('applyArrivalDistanceBtn');
+            const maxStaticFramesInput = getEl('maxStaticFramesInput');
+            const applyMaxStaticFramesBtn = getEl('applyMaxStaticFramesBtn');
+            const minDetectionsInput = getEl('minDetectionsInput');
+            const applyMinDetectionsBtn = getEl('applyMinDetectionsBtn');
+            const saveAllConfigBtn = getEl('saveAllConfigBtn');
 
             // Artifact management refs
-            const artifactTableBody = document.getElementById('artifactTableBody');
-            const artifactForm = document.getElementById('artifactForm');
-            const formTitle = document.getElementById('formTitle');
-            const af_id = document.getElementById('af_id');
-            const af_name = document.getElementById('af_name');
-            const af_name_ms = document.getElementById('af_name_ms');
-            const af_name_fr = document.getElementById('af_name_fr');
-            const af_category = document.getElementById('af_category');
-            const af_category_ms = document.getElementById('af_category_ms');
-            const af_category_fr = document.getElementById('af_category_fr');
-            const af_year = document.getElementById('af_year');
-            const af_year_ms = document.getElementById('af_year_ms');
-            const af_year_fr = document.getElementById('af_year_fr');
-            const af_origin = document.getElementById('af_origin');
-            const af_origin_ms = document.getElementById('af_origin_ms');
-            const af_origin_fr = document.getElementById('af_origin_fr');
-            const af_material = document.getElementById('af_material');
-            const af_material_ms = document.getElementById('af_material_ms');
-            const af_material_fr = document.getElementById('af_material_fr');
-            const af_emoji = document.getElementById('af_emoji');
-            const af_image_url = document.getElementById('af_image_url');
-            const af_description = document.getElementById('af_description');
-            const af_description_ms = document.getElementById('af_description_ms');
-            const af_description_fr = document.getElementById('af_description_fr');
-            const formCancelBtn = document.getElementById('formCancelBtn');
-            const formSaveBtn = document.getElementById('formSaveBtn');
-            const newArtifactBtn = document.getElementById('newArtifactBtn');
+            const artifactTableBody = getEl('artifactTableBody');
+            const artifactForm = getEl('artifactForm');
+            const formTitle = getEl('formTitle');
+            const af_id = getEl('af_id');
+            const af_name = getEl('af_name');
+            const af_name_ms = getEl('af_name_ms');
+            const af_name_fr = getEl('af_name_fr');
+            const af_category = getEl('af_category');
+            const af_category_ms = getEl('af_category_ms');
+            const af_category_fr = getEl('af_category_fr');
+            const af_year = getEl('af_year');
+            const af_year_ms = getEl('af_year_ms');
+            const af_year_fr = getEl('af_year_fr');
+            const af_origin = getEl('af_origin');
+            const af_origin_ms = getEl('af_origin_ms');
+            const af_origin_fr = getEl('af_origin_fr');
+            const af_material = getEl('af_material');
+            const af_material_ms = getEl('af_material_ms');
+            const af_material_fr = getEl('af_material_fr');
+            const af_emoji = getEl('af_emoji');
+            const af_image_url = getEl('af_image_url');
+            const af_description = getEl('af_description');
+            const af_description_ms = getEl('af_description_ms');
+            const af_description_fr = getEl('af_description_fr');
+            const formCancelBtn = getEl('formCancelBtn');
+            const formSaveBtn = getEl('formSaveBtn');
+            const newArtifactBtn = getEl('newArtifactBtn');
 
             // Logs refs
-            const alarmTableBody = document.getElementById('alarmTableBody');
-            const movementTableBody = document.getElementById('movementTableBody');
+            const alarmTableBody = getEl('alarmTableBody');
+            const movementTableBody = getEl('movementTableBody');
 
             // Admin tabs
             const tabButtons = document.querySelectorAll('.admin-tabs button');
             const tabContents = {
-                config: document.getElementById('tab-config'),
-                artifacts: document.getElementById('tab-artifacts'),
-                alarms: document.getElementById('tab-alarms'),
-                movement: document.getElementById('tab-movement')
+                config: getEl('tab-config'),
+                artifacts: getEl('tab-artifacts'),
+                alarms: getEl('tab-alarms'),
+                movement: getEl('tab-movement')
             };
+
+            // ==========================================
+            // LANGBUTTONS (must be defined after DOM load)
+            // ==========================================
+            let langButtons = [];
 
             // ==========================================
             // CHARTS INIT
@@ -1736,9 +1738,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { labels: { color: '#eee' } }
-                    },
+                    plugins: { legend: { labels: { color: '#eee' } } },
                     scales: {
                         x: { ticks: { color: '#888', maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,0.05)' } },
                         y: { type: 'linear', position: 'left', ticks: { color: '#ff6b6b' }, grid: { color: 'rgba(255,255,255,0.05)' } },
@@ -1762,9 +1762,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { color: '#eee' } }
-                    },
+                    plugins: { legend: { labels: { color: '#eee' } } },
                     scales: {
                         x: { ticks: { color: '#888', maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,0.05)' } },
                         y: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } }
@@ -1773,7 +1771,7 @@
             });
 
             // ==========================================
-            // FETCH DATA FROM GOOGLE SHEETS
+            // FETCH FUNCTIONS
             // ==========================================
             async function fetchSensorHistory() {
                 try {
@@ -1782,10 +1780,7 @@
                     if (data.error) { console.error('Sensor history error:', data.error); return; }
                     const rows = data.data || [];
                     if (rows.length === 0) return;
-                    const labels = rows.map(r => {
-                        const d = new Date(r[0]);
-                        return d.toLocaleTimeString();
-                    });
+                    const labels = rows.map(r => { const d = new Date(r[0]); return d.toLocaleTimeString(); });
                     const temps = rows.map(r => parseFloat(r[1]) || 0);
                     const hums = rows.map(r => parseFloat(r[2]) || 0);
                     historyChart.data.labels = labels;
@@ -1794,8 +1789,8 @@
                     historyChart.update('none');
                     const last = rows[rows.length - 1];
                     if (last) {
-                        tempDisplay.textContent = parseFloat(last[1]).toFixed(1) + '°C';
-                        humidDisplay.textContent = parseFloat(last[2]).toFixed(1) + '%';
+                        if (tempDisplay) tempDisplay.textContent = parseFloat(last[1]).toFixed(1) + '°C';
+                        if (humidDisplay) humidDisplay.textContent = parseFloat(last[2]).toFixed(1) + '%';
                     }
                 } catch (e) { console.error('Fetch sensor history failed:', e); }
             }
@@ -1825,6 +1820,7 @@
             // ==========================================
             async function loadAlarms() {
                 try {
+                    if (!alarmTableBody) return;
                     const res = await fetch(CONFIG.sheetApiUrl + '?action=getAlarms&_=' + Date.now());
                     const data = await res.json();
                     if (data.error) {
@@ -1859,7 +1855,8 @@
                         });
                     });
                 } catch (e) {
-                    alarmTableBody.innerHTML = `<tr><td colspan="5" style="color:#e94560;">Error loading alarms.</td></tr>`;
+                    if (alarmTableBody) alarmTableBody.innerHTML =
+                        `<tr><td colspan="5" style="color:#e94560;">Error loading alarms.</td></tr>`;
                 }
             }
 
@@ -1878,6 +1875,7 @@
             // ==========================================
             async function loadMovementLogs() {
                 try {
+                    if (!movementTableBody) return;
                     const res = await fetch(CONFIG.sheetApiUrl + '?action=getPositionLogs&_=' + Date.now());
                     const data = await res.json();
                     if (data.error) {
@@ -1903,17 +1901,17 @@
                     });
                     movementTableBody.innerHTML = html;
                 } catch (e) {
-                    movementTableBody.innerHTML =
+                    if (movementTableBody) movementTableBody.innerHTML =
                         `<tr><td colspan="5" style="color:#e94560;">Error loading movement logs.</td></tr>`;
                 }
             }
 
             // ==========================================
-            // LOAD CONFIG FROM GOOGLE SHEETS
+            // LOAD CONFIG
             // ==========================================
             async function loadConfigFromSheets(retries = 3) {
                 try {
-                    configLoadStatus.textContent = '🔄 Loading config...';
+                    if (configLoadStatus) configLoadStatus.textContent = '🔄 Loading config...';
                     const url = CONFIG.sheetApiUrl + '?action=getConfig&_=' + Date.now();
                     const response = await fetch(url);
                     if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -1921,67 +1919,59 @@
                     if (data.error) throw new Error(data.error);
                     const config = data.config || {};
 
-                    // Populate UI controls
-                    if (config.min_range !== undefined) {
+                    if (minRangeSlider && minRangeVal && config.min_range !== undefined) {
                         const val = parseFloat(config.min_range);
                         minRangeSlider.value = val;
                         minRangeVal.textContent = val.toFixed(1);
                     }
-                    if (config.max_range !== undefined) {
+                    if (maxRangeSlider && maxRangeVal && config.max_range !== undefined) {
                         const val = parseFloat(config.max_range);
                         maxRangeSlider.value = val;
                         maxRangeVal.textContent = val.toFixed(1);
                     }
-                    if (config.angle_min !== undefined) {
-                        angleMinInput.value = config.angle_min;
-                    }
-                    if (config.angle_max !== undefined) {
-                        angleMaxInput.value = config.angle_max;
-                    }
-                    if (config.sensitivity !== undefined) {
+                    if (angleMinInput && config.angle_min !== undefined) angleMinInput.value = config.angle_min;
+                    if (angleMaxInput && config.angle_max !== undefined) angleMaxInput.value = config.angle_max;
+                    if (sensitivitySlider && sensitivityVal && config.sensitivity !== undefined) {
                         const val = parseFloat(config.sensitivity);
                         sensitivitySlider.value = val;
                         sensitivityVal.textContent = val.toFixed(2);
                     }
-                    if (config.min_samples !== undefined) {
-                        minSamplesInput.value = parseInt(config.min_samples);
-                    }
-                    if (config.movement_threshold !== undefined) {
+                    if (minSamplesInput && config.min_samples !== undefined) minSamplesInput.value = parseInt(config
+                        .min_samples);
+                    if (movementThresholdSlider && movementThresholdVal && config.movement_threshold !== undefined) {
                         const val = parseFloat(config.movement_threshold);
                         movementThresholdSlider.value = val;
                         movementThresholdVal.textContent = val.toFixed(2);
                     }
-                    if (config.max_speed !== undefined) {
+                    if (speedSlider && speedVal && config.max_speed !== undefined) {
                         const val = parseFloat(config.max_speed);
                         speedSlider.value = val;
                         speedVal.textContent = val.toFixed(2);
                     }
-                    if (config.arrival_distance !== undefined) {
+                    if (arrivalDistanceSlider && arrivalDistanceVal && config.arrival_distance !== undefined) {
                         const val = parseFloat(config.arrival_distance);
                         arrivalDistanceSlider.value = val;
                         arrivalDistanceVal.textContent = val.toFixed(1);
                     }
-                    if (config.max_static_frames !== undefined) {
-                        maxStaticFramesInput.value = parseInt(config.max_static_frames);
-                    }
-                    if (config.min_detections !== undefined) {
-                        minDetectionsInput.value = parseInt(config.min_detections);
-                    }
+                    if (maxStaticFramesInput && config.max_static_frames !== undefined) maxStaticFramesInput.value =
+                        parseInt(config.max_static_frames);
+                    if (minDetectionsInput && config.min_detections !== undefined) minDetectionsInput.value = parseInt(
+                        config.min_detections);
 
-                    configLoadStatus.textContent = '✅ Config loaded';
+                    if (configLoadStatus) configLoadStatus.textContent = '✅ Config loaded';
                     console.log('✅ Config loaded from Google Sheets');
                 } catch (e) {
                     console.warn('Failed to load config:', e);
-                    configLoadStatus.textContent = '⚠️ Config load failed';
+                    if (configLoadStatus) configLoadStatus.textContent = '⚠️ Config load failed';
                     if (retries > 0) {
                         setTimeout(() => loadConfigFromSheets(retries - 1), 2000);
-                        configLoadStatus.textContent = '🔄 Retrying...';
+                        if (configLoadStatus) configLoadStatus.textContent = '🔄 Retrying...';
                     }
                 }
             }
 
             // ==========================================
-            // UPDATE CONFIG IN GOOGLE SHEETS
+            // UPDATE CONFIG
             // ==========================================
             async function updateConfigInSheets(param, value) {
                 try {
@@ -2010,19 +2000,18 @@
             // ==========================================
             async function saveAllConfig() {
                 const config = {
-                    min_range: parseFloat(minRangeSlider.value),
-                    max_range: parseFloat(maxRangeSlider.value),
-                    angle_min: parseInt(angleMinInput.value),
-                    angle_max: parseInt(angleMaxInput.value),
-                    sensitivity: parseFloat(sensitivitySlider.value),
-                    min_samples: parseInt(minSamplesInput.value),
-                    movement_threshold: parseFloat(movementThresholdSlider.value),
-                    max_speed: parseFloat(speedSlider.value),
-                    arrival_distance: parseFloat(arrivalDistanceSlider.value),
-                    max_static_frames: parseInt(maxStaticFramesInput.value),
-                    min_detections: parseInt(minDetectionsInput.value)
+                    min_range: parseFloat(minRangeSlider ? minRangeSlider.value : 0.5),
+                    max_range: parseFloat(maxRangeSlider ? maxRangeSlider.value : 5.0),
+                    angle_min: parseInt(angleMinInput ? angleMinInput.value : -90),
+                    angle_max: parseInt(angleMaxInput ? angleMaxInput.value : 90),
+                    sensitivity: parseFloat(sensitivitySlider ? sensitivitySlider.value : 0.15),
+                    min_samples: parseInt(minSamplesInput ? minSamplesInput.value : 8),
+                    movement_threshold: parseFloat(movementThresholdSlider ? movementThresholdSlider.value : 0.2),
+                    max_speed: parseFloat(speedSlider ? speedSlider.value : 0.5),
+                    arrival_distance: parseFloat(arrivalDistanceSlider ? arrivalDistanceSlider.value : 1.0),
+                    max_static_frames: parseInt(maxStaticFramesInput ? maxStaticFramesInput.value : 3),
+                    min_detections: parseInt(minDetectionsInput ? minDetectionsInput.value : 3)
                 };
-
                 try {
                     const formData = new URLSearchParams();
                     formData.append('action', 'updateConfigBatch');
@@ -2037,7 +2026,7 @@
                         alert('Save error: ' + data.error);
                     } else {
                         alert('✅ All configuration saved to Google Sheets');
-                        loadConfigFromSheets(); // Refresh UI
+                        loadConfigFromSheets();
                     }
                 } catch (e) {
                     alert('Save failed: ' + e);
@@ -2051,6 +2040,7 @@
 
             async function loadArtifactTable() {
                 try {
+                    if (!artifactTableBody) return;
                     const res = await fetch(CONFIG.sheetApiUrl + '?action=getArtifacts&_=' + Date.now());
                     const data = await res.json();
                     if (data.error) {
@@ -2095,7 +2085,7 @@
                         });
                     });
                 } catch (e) {
-                    artifactTableBody.innerHTML =
+                    if (artifactTableBody) artifactTableBody.innerHTML =
                         `<tr><td colspan="8" style="color:#e94560;">Error loading artifacts.</td></tr>`;
                 }
             }
@@ -2108,7 +2098,7 @@
                         const a = data.artifact;
                         if (!a) { alert('Artifact not found.'); return; }
                         editingArtifactId = id;
-                        formTitle.textContent = 'Edit Artifact';
+                        if (formTitle) formTitle.textContent = 'Edit Artifact';
                         af_id.value = a.id || '';
                         af_name.value = a.name || '';
                         af_name_ms.value = a.name_ms || '';
@@ -2130,7 +2120,7 @@
                         af_description.value = a.description || '';
                         af_description_ms.value = a.description_ms || '';
                         af_description_fr.value = a.description_fr || '';
-                        artifactForm.classList.add('active');
+                        if (artifactForm) artifactForm.classList.add('active');
                     })
                     .catch(err => alert('Error loading artifact: ' + err));
             }
@@ -2172,11 +2162,9 @@
                 };
                 if (!artifact.id) { alert('ID is required.'); return; }
                 if (!artifact.name) { alert('Name is required.'); return; }
-
                 const formData = new URLSearchParams();
                 formData.append('action', 'updateArtifact');
                 formData.append('data', JSON.stringify(artifact));
-
                 fetch(CONFIG.sheetApiUrl, {
                         method: 'POST',
                         body: formData,
@@ -2186,51 +2174,59 @@
                     .then(data => {
                         if (data.error) { alert('Save error: ' + data.error); return; }
                         alert('Artifact saved.');
-                        artifactForm.classList.remove('active');
+                        if (artifactForm) artifactForm.classList.remove('active');
                         editingArtifactId = null;
                         loadArtifactTable();
                     })
                     .catch(err => alert('Save failed: ' + err));
             }
 
-            newArtifactBtn.addEventListener('click', function() {
-                editingArtifactId = null;
-                formTitle.textContent = 'Add Artifact';
-                ['af_id', 'af_name', 'af_name_ms', 'af_name_fr', 'af_category', 'af_category_ms', 'af_category_fr',
-                    'af_year', 'af_year_ms', 'af_year_fr', 'af_origin', 'af_origin_ms', 'af_origin_fr',
-                    'af_material', 'af_material_ms', 'af_material_fr', 'af_emoji', 'af_image_url',
-                    'af_description', 'af_description_ms', 'af_description_fr'
-                ].forEach(id => document.getElementById(id).value = '');
-                artifactForm.classList.add('active');
-            });
+            if (newArtifactBtn) {
+                newArtifactBtn.addEventListener('click', function() {
+                    editingArtifactId = null;
+                    if (formTitle) formTitle.textContent = 'Add Artifact';
+                    ['af_id', 'af_name', 'af_name_ms', 'af_name_fr', 'af_category', 'af_category_ms', 'af_category_fr',
+                        'af_year', 'af_year_ms', 'af_year_fr', 'af_origin', 'af_origin_ms', 'af_origin_fr',
+                        'af_material', 'af_material_ms', 'af_material_fr', 'af_emoji', 'af_image_url',
+                        'af_description', 'af_description_ms', 'af_description_fr'
+                    ].forEach(id => {
+                        const el = getEl(id);
+                        if (el) el.value = '';
+                    });
+                    if (artifactForm) artifactForm.classList.add('active');
+                });
+            }
 
-            formCancelBtn.addEventListener('click', function() {
-                artifactForm.classList.remove('active');
-                editingArtifactId = null;
-            });
+            if (formCancelBtn) {
+                formCancelBtn.addEventListener('click', function() {
+                    if (artifactForm) artifactForm.classList.remove('active');
+                    editingArtifactId = null;
+                });
+            }
 
-            formSaveBtn.addEventListener('click', saveArtifact);
+            if (formSaveBtn) {
+                formSaveBtn.addEventListener('click', saveArtifact);
+            }
 
             // ==========================================
             // ADMIN TABS
             // ==========================================
-            tabButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    tabButtons.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    const tab = this.dataset.tab;
-                    Object.keys(tabContents).forEach(key => {
-                        tabContents[key].classList.toggle('active', key === tab);
+            if (tabButtons) {
+                tabButtons.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        tabButtons.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        const tab = this.dataset.tab;
+                        Object.keys(tabContents).forEach(key => {
+                            if (tabContents[key]) tabContents[key].classList.toggle('active', key ===
+                            tab);
+                        });
+                        if (tab === 'artifacts') loadArtifactTable();
+                        else if (tab === 'alarms') loadAlarms();
+                        else if (tab === 'movement') loadMovementLogs();
                     });
-                    if (tab === 'artifacts') {
-                        loadArtifactTable();
-                    } else if (tab === 'alarms') {
-                        loadAlarms();
-                    } else if (tab === 'movement') {
-                        loadMovementLogs();
-                    }
                 });
-            });
+            }
 
             // ==========================================
             // MQTT
@@ -2241,8 +2237,8 @@
                     mqttClient.on('connect', function() {
                         console.log('✅ MQTT connected');
                         mqttConnected = true;
-                        mqttDot.className = 'dot online';
-                        mqttLabel.textContent = 'MQTT: Connected';
+                        if (mqttDot) mqttDot.className = 'dot online';
+                        if (mqttLabel) mqttLabel.textContent = 'MQTT: Connected';
                         mqttClient.subscribe(CONFIG.topicArtifact);
                         mqttClient.subscribe(CONFIG.topicWelcome);
                         mqttClient.subscribe(CONFIG.topicSensor);
@@ -2258,14 +2254,14 @@
                     });
                     mqttClient.on('error', function(err) {
                         console.error('❌ MQTT error:', err);
-                        mqttDot.className = 'dot offline';
-                        mqttLabel.textContent = 'MQTT: Error';
+                        if (mqttDot) mqttDot.className = 'dot offline';
+                        if (mqttLabel) mqttLabel.textContent = 'MQTT: Error';
                     });
                     mqttClient.on('close', function() {
                         console.warn('⚠️ MQTT disconnected');
                         mqttConnected = false;
-                        mqttDot.className = 'dot offline';
-                        mqttLabel.textContent = 'MQTT: Disconnected';
+                        if (mqttDot) mqttDot.className = 'dot offline';
+                        if (mqttLabel) mqttLabel.textContent = 'MQTT: Disconnected';
                     });
                 } catch (e) { console.error('❌ MQTT init error:', e); }
             }
@@ -2310,14 +2306,15 @@
 
             function handleWelcome(data) {
                 console.log('👋 Welcome trigger:', data);
-                if (data.message) greetingBox.textContent = '👋 ' + data.message;
+                if (data.message && greetingBox) greetingBox.textContent = '👋 ' + data.message;
                 switchSection('presenting');
             }
 
             function handleSensor(data) {
                 console.log('🌡️ Sensor data:', data);
-                if (data.temperature !== undefined) tempDisplay.textContent = data.temperature.toFixed(1) + '°C';
-                if (data.humidity !== undefined) humidDisplay.textContent = data.humidity.toFixed(1) + '%';
+                if (data.temperature !== undefined && tempDisplay) tempDisplay.textContent = data.temperature.toFixed(1) +
+                    '°C';
+                if (data.humidity !== undefined && humidDisplay) humidDisplay.textContent = data.humidity.toFixed(1) + '%';
                 checkSensorAlert(data);
             }
 
@@ -2327,13 +2324,14 @@
                 if (data.progress !== undefined) data.progress = parseFloat(data.progress);
                 if (data.eta !== undefined) data.eta = parseFloat(data.eta);
                 console.log('👥 Crowd data:', data);
-                if (data.count !== undefined) crowdCountDisplay.textContent = data.count;
+                if (data.count !== undefined && crowdCountDisplay) crowdCountDisplay.textContent = data.count;
                 if (data.count >= 2 && data.moving === true) {
                     if (currentState !== 'presenting') switchSection('driving');
-                    if (data.target_x !== undefined && data.target_y !== undefined)
+                    if (data.target_x !== undefined && data.target_y !== undefined && coordDisplay)
                         coordDisplay.textContent = `Target: (${data.target_x.toFixed(1)}, ${data.target_y.toFixed(1)})`;
-                    if (data.progress !== undefined) progressFill.style.width = Math.min(100, data.progress * 100) + '%';
-                    if (data.eta !== undefined) etaDisplay.textContent = `⏱️ ETA: ${data.eta.toFixed(1)} s`;
+                    if (data.progress !== undefined && progressFill) progressFill.style.width = Math.min(100, data
+                        .progress * 100) + '%';
+                    if (data.eta !== undefined && etaDisplay) etaDisplay.textContent = `⏱️ ETA: ${data.eta.toFixed(1)} s`;
                 }
                 if (data.count === 0 && currentState === 'idle') {}
             }
@@ -2341,8 +2339,9 @@
             function handleState(data) {
                 console.log('📊 Robot state:', data);
                 if (data.state) {
-                    stateLabel.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
-                    adminStateLabel.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
+                    if (stateLabel) stateLabel.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
+                    if (adminStateLabel) adminStateLabel.textContent = data.state.charAt(0).toUpperCase() + data.state
+                        .slice(1);
                 }
                 if (currentState !== 'presenting') {
                     if (data.state === 'idle') switchSection('welcome');
@@ -2353,10 +2352,11 @@
 
             function handleRobotPos(data) {
                 if (currentState === 'driving') {
-                    if (data.target_x !== undefined && data.target_y !== undefined)
+                    if (data.target_x !== undefined && data.target_y !== undefined && coordDisplay)
                         coordDisplay.textContent = `Target: (${data.target_x.toFixed(1)}, ${data.target_y.toFixed(1)})`;
-                    if (data.progress !== undefined) progressFill.style.width = Math.min(100, data.progress * 100) + '%';
-                    if (data.eta !== undefined) etaDisplay.textContent = `⏱️ ETA: ${data.eta.toFixed(1)} s`;
+                    if (data.progress !== undefined && progressFill) progressFill.style.width = Math.min(100, data
+                        .progress * 100) + '%';
+                    if (data.eta !== undefined && etaDisplay) etaDisplay.textContent = `⏱️ ETA: ${data.eta.toFixed(1)} s`;
                 }
             }
 
@@ -2384,16 +2384,22 @@
                     material = artifact.material_fr || material;
                     name = artifact.name_fr || name;
                 }
-                artifactName.textContent = name;
-                artifactMeta.textContent = [origin, year, material].filter(Boolean).join(' • ') || 'Unknown origin';
-                artifactDesc.textContent = desc;
-                if (artifact.image_url) artifactImage.innerHTML = `<img src="${artifact.image_url}" alt="${name}" />`;
-                else artifactImage.textContent = emoji;
-                artifactDisplay.classList.add('active');
+                if (artifactName) artifactName.textContent = name;
+                if (artifactMeta) artifactMeta.textContent = [origin, year, material].filter(Boolean).join(' • ') ||
+                    'Unknown origin';
+                if (artifactDesc) artifactDesc.textContent = desc;
+                if (artifactImage) {
+                    if (artifact.image_url) artifactImage.innerHTML = `<img src="${artifact.image_url}" alt="${name}" />`;
+                    else artifactImage.textContent = emoji;
+                }
+                if (artifactDisplay) artifactDisplay.classList.add('active');
                 window.currentSpeakText = `${name}. ${desc}`;
                 window.currentLangCode = lang === 'ms' ? 'ms-MY' : (lang === 'fr' ? 'fr-FR' : 'en-US');
                 const langNames = { 'ms': 'Bahasa Melayu', 'en': 'English', 'fr': 'Français' };
-                langIndicator.textContent = `🔊 Speaking: ${langNames[lang] || 'English'}`;
+                if (langIndicator) langIndicator.textContent = `🔊 Speaking: ${langNames[lang] || 'English'}`;
+
+                // Update language buttons
+                langButtons = document.querySelectorAll('.lang-buttons button');
                 langButtons.forEach(btn => {
                     btn.classList.remove('active');
                     if (btn.dataset.lang === lang) btn.classList.add('active');
@@ -2420,12 +2426,12 @@
                 }
                 if (voice) utterance.voice = voice;
                 utterance.onstart = function() { isSpeaking = true;
-                    langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`; };
+                    if (langIndicator) langIndicator.textContent = `🔊 Speaking: ${text.substring(0, 40)}...`; };
                 utterance.onend = function() { isSpeaking = false;
-                    langIndicator.textContent = `✅ Finished speaking (${langCode})`; };
+                    if (langIndicator) langIndicator.textContent = `✅ Finished speaking (${langCode})`; };
                 utterance.onerror = function(e) { console.error('❌ Speech error:', e);
                     isSpeaking = false;
-                    langIndicator.textContent = `❌ Speech error`; };
+                    if (langIndicator) langIndicator.textContent = `❌ Speech error`; };
                 window.speechSynthesis.speak(utterance);
             }
 
@@ -2433,6 +2439,7 @@
             // SENSOR ALERT
             // ==========================================
             function checkSensorAlert(data) {
+                if (!sensorAlert) return;
                 let alertMsg = '';
                 let alertClass = '';
                 if (data.temperature !== undefined) {
@@ -2455,8 +2462,8 @@
                     sensorAlert.textContent = '✅ Temperature and humidity are within safe range.';
                     sensorAlert.className = 'sensor-alert';
                     sensorAlert.style.display = 'block';
-                    sensorAlert.style.background = 'rgba(78, 205, 196, 0.10)';
-                    sensorAlert.style.border = '1px solid rgba(78, 205, 196, 0.2)';
+                    sensorAlert.style.background = 'rgba(78,205,196,0.10)';
+                    sensorAlert.style.border = '1px solid rgba(78,205,196,0.2)';
                     sensorAlert.style.color = '#4ecdc4';
                 }
             }
@@ -2465,164 +2472,192 @@
             // SECTION SWITCHING
             // ==========================================
             function switchSection(sectionName) {
-                Object.keys(sections).forEach(key => sections[key].classList.remove('active'));
+                Object.keys(sections).forEach(key => {
+                    if (sections[key]) sections[key].classList.remove('active');
+                });
                 if (sections[sectionName]) {
                     sections[sectionName].classList.add('active');
                     currentState = sectionName;
                     const stateMap = { 'welcome': 'Idle', 'driving': 'Driving', 'presenting': 'Presenting',
                         'admin': 'Admin' };
-                    stateLabel.textContent = stateMap[sectionName] || sectionName;
-                    adminStateLabel.textContent = stateMap[sectionName] || sectionName;
+                    if (stateLabel) stateLabel.textContent = stateMap[sectionName] || sectionName;
+                    if (adminStateLabel) adminStateLabel.textContent = stateMap[sectionName] || sectionName;
                 }
             }
 
             // ==========================================
             // ADMIN LOGIN
             // ==========================================
-            adminToggleBtn.addEventListener('click', function() {
-                if (adminLoggedIn) {
-                    switchSection('admin');
-                } else {
-                    switchSection('admin');
-                    adminLogin.classList.remove('hidden');
-                    adminPanel.classList.remove('active');
-                }
-            });
+            if (adminToggleBtn) {
+                adminToggleBtn.addEventListener('click', function() {
+                    if (adminLoggedIn) {
+                        switchSection('admin');
+                    } else {
+                        switchSection('admin');
+                        if (adminLogin) adminLogin.classList.remove('hidden');
+                        if (adminPanel) adminPanel.classList.remove('active');
+                    }
+                });
+            }
 
-            adminLoginBtn.addEventListener('click', function() {
-                const pass = adminPassword.value.trim();
-                if (pass === CONFIG.adminPassword) {
-                    adminLoggedIn = true;
-                    adminLogin.classList.add('hidden');
-                    adminPanel.classList.add('active');
-                    adminLoginError.textContent = '';
-                    adminPassword.value = '';
-                    loadArtifactTable();
-                    loadAlarms();
-                    loadMovementLogs();
-                } else {
-                    adminLoginError.textContent = '❌ Incorrect password. Try again.';
-                }
-            });
+            if (adminLoginBtn) {
+                adminLoginBtn.addEventListener('click', function() {
+                    const pass = adminPassword ? adminPassword.value.trim() : '';
+                    if (pass === CONFIG.adminPassword) {
+                        adminLoggedIn = true;
+                        if (adminLogin) adminLogin.classList.add('hidden');
+                        if (adminPanel) adminPanel.classList.add('active');
+                        if (adminLoginError) adminLoginError.textContent = '';
+                        if (adminPassword) adminPassword.value = '';
+                        loadArtifactTable();
+                        loadAlarms();
+                        loadMovementLogs();
+                    } else {
+                        if (adminLoginError) adminLoginError.textContent = '❌ Incorrect password. Try again.';
+                    }
+                });
+            }
 
-            adminPassword.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') adminLoginBtn.click();
-            });
+            if (adminPassword) {
+                adminPassword.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && adminLoginBtn) adminLoginBtn.click();
+                });
+            }
 
-            adminLogoutBtn.addEventListener('click', function() {
-                adminLoggedIn = false;
-                adminLogin.classList.remove('hidden');
-                adminPanel.classList.remove('active');
-                adminLoginError.textContent = '';
-                switchSection('welcome');
-            });
+            if (adminLogoutBtn) {
+                adminLogoutBtn.addEventListener('click', function() {
+                    adminLoggedIn = false;
+                    if (adminLogin) adminLogin.classList.remove('hidden');
+                    if (adminPanel) adminPanel.classList.remove('active');
+                    if (adminLoginError) adminLoginError.textContent = '';
+                    switchSection('welcome');
+                });
+            }
 
             // ==========================================
             // CONFIGURATION CONTROLS
             // ==========================================
 
-            // Helper to update a single config param and show feedback
-            function updateSingleConfig(param, value, btnElement) {
-                // Update Google Sheets
-                updateConfigInSheets(param, value);
-                // Provide visual feedback
-                const originalText = btnElement.textContent;
-                btnElement.textContent = '✅ Saved';
-                btnElement.style.borderColor = '#4ecdc4';
-                setTimeout(() => {
-                    btnElement.textContent = originalText;
-                    btnElement.style.borderColor = '';
-                }, 2000);
+            if (minRangeSlider && minRangeVal) {
+                minRangeSlider.addEventListener('input', function() { minRangeVal.textContent = parseFloat(this.value)
+                        .toFixed(1); });
+            }
+            if (maxRangeSlider && maxRangeVal) {
+                maxRangeSlider.addEventListener('input', function() { maxRangeVal.textContent = parseFloat(this.value)
+                        .toFixed(1); });
+            }
+            if (sensitivitySlider && sensitivityVal) {
+                sensitivitySlider.addEventListener('input', function() { sensitivityVal.textContent = parseFloat(this
+                        .value).toFixed(2); });
+            }
+            if (movementThresholdSlider && movementThresholdVal) {
+                movementThresholdSlider.addEventListener('input', function() { movementThresholdVal.textContent =
+                        parseFloat(this.value).toFixed(2); });
+            }
+            if (speedSlider && speedVal) {
+                speedSlider.addEventListener('input', function() { speedVal.textContent = parseFloat(this.value)
+                        .toFixed(2); });
+            }
+            if (arrivalDistanceSlider && arrivalDistanceVal) {
+                arrivalDistanceSlider.addEventListener('input', function() { arrivalDistanceVal.textContent = parseFloat(
+                        this.value).toFixed(1); });
             }
 
-            // Slider listeners for real-time display
-            minRangeSlider.addEventListener('input', function() { minRangeVal.textContent = parseFloat(this.value)
-                    .toFixed(1); });
-            maxRangeSlider.addEventListener('input', function() { maxRangeVal.textContent = parseFloat(this.value)
-                    .toFixed(1); });
-            sensitivitySlider.addEventListener('input', function() { sensitivityVal.textContent = parseFloat(this.value)
-                    .toFixed(2); });
-            movementThresholdSlider.addEventListener('input', function() { movementThresholdVal.textContent = parseFloat(this
-                    .value).toFixed(2); });
-            speedSlider.addEventListener('input', function() { speedVal.textContent = parseFloat(this.value)
-                .toFixed(2); });
-            arrivalDistanceSlider.addEventListener('input', function() { arrivalDistanceVal.textContent = parseFloat(this
-                    .value).toFixed(1); });
+            if (applyRangeBtn) {
+                applyRangeBtn.addEventListener('click', function() {
+                    const min = parseFloat(minRangeSlider ? minRangeSlider.value : 0.5);
+                    const max = parseFloat(maxRangeSlider ? maxRangeSlider.value : 5.0);
+                    publishMqtt('museum/admin/range', { min: min, max: max });
+                    updateConfigInSheets('min_range', min);
+                    updateConfigInSheets('max_range', max);
+                    alert(`✅ Detection range set to ${min}m - ${max}m`);
+                });
+            }
 
-            // Apply Buttons - each updates Google Sheets
-            applyRangeBtn.addEventListener('click', function() {
-                const min = parseFloat(minRangeSlider.value);
-                const max = parseFloat(maxRangeSlider.value);
-                publishMqtt('museum/admin/range', { min: min, max: max }); // MQTT real-time update
-                updateConfigInSheets('min_range', min);
-                updateConfigInSheets('max_range', max);
-                alert(`✅ Detection range set to ${min}m - ${max}m`);
-            });
+            if (applyAngleBtn) {
+                applyAngleBtn.addEventListener('click', function() {
+                    const min = parseInt(angleMinInput ? angleMinInput.value : -90);
+                    const max = parseInt(angleMaxInput ? angleMaxInput.value : 90);
+                    if (min >= max) { alert('Min angle must be less than max angle.'); return; }
+                    updateConfigInSheets('angle_min', min);
+                    updateConfigInSheets('angle_max', max);
+                    alert(`✅ Detection angle set to ${min}° - ${max}°`);
+                });
+            }
 
-            applyAngleBtn.addEventListener('click', function() {
-                const min = parseInt(angleMinInput.value);
-                const max = parseInt(angleMaxInput.value);
-                if (min >= max) { alert('Min angle must be less than max angle.'); return; }
-                updateConfigInSheets('angle_min', min);
-                updateConfigInSheets('angle_max', max);
-                alert(`✅ Detection angle set to ${min}° - ${max}°`);
-            });
+            if (applySensitivityBtn) {
+                applySensitivityBtn.addEventListener('click', function() {
+                    const val = parseFloat(sensitivitySlider ? sensitivitySlider.value : 0.15);
+                    updateConfigInSheets('sensitivity', val);
+                    alert(`✅ Sensitivity set to ${val}`);
+                });
+            }
 
-            applySensitivityBtn.addEventListener('click', function() {
-                const val = parseFloat(sensitivitySlider.value);
-                updateConfigInSheets('sensitivity', val);
-                alert(`✅ Sensitivity set to ${val}`);
-            });
+            if (applyMinSamplesBtn) {
+                applyMinSamplesBtn.addEventListener('click', function() {
+                    const val = parseInt(minSamplesInput ? minSamplesInput.value : 8);
+                    updateConfigInSheets('min_samples', val);
+                    alert(`✅ Min samples set to ${val}`);
+                });
+            }
 
-            applyMinSamplesBtn.addEventListener('click', function() {
-                const val = parseInt(minSamplesInput.value);
-                updateConfigInSheets('min_samples', val);
-                alert(`✅ Min samples set to ${val}`);
-            });
+            if (applyMovementThresholdBtn) {
+                applyMovementThresholdBtn.addEventListener('click', function() {
+                    const val = parseFloat(movementThresholdSlider ? movementThresholdSlider.value : 0.2);
+                    updateConfigInSheets('movement_threshold', val);
+                    alert(`✅ Movement threshold set to ${val}`);
+                });
+            }
 
-            applyMovementThresholdBtn.addEventListener('click', function() {
-                const val = parseFloat(movementThresholdSlider.value);
-                updateConfigInSheets('movement_threshold', val);
-                alert(`✅ Movement threshold set to ${val}`);
-            });
+            if (applySpeedBtn) {
+                applySpeedBtn.addEventListener('click', function() {
+                    const speed = parseFloat(speedSlider ? speedSlider.value : 0.5);
+                    publishMqtt('museum/admin/speed', { speed: speed });
+                    updateConfigInSheets('max_speed', speed);
+                    alert(`✅ Movement speed set to ${speed.toFixed(2)} m/s`);
+                });
+            }
 
-            applySpeedBtn.addEventListener('click', function() {
-                const speed = parseFloat(speedSlider.value);
-                publishMqtt('museum/admin/speed', { speed: speed });
-                updateConfigInSheets('max_speed', speed);
-                alert(`✅ Movement speed set to ${speed.toFixed(2)} m/s`);
-            });
+            if (applyArrivalDistanceBtn) {
+                applyArrivalDistanceBtn.addEventListener('click', function() {
+                    const val = parseFloat(arrivalDistanceSlider ? arrivalDistanceSlider.value : 1.0);
+                    updateConfigInSheets('arrival_distance', val);
+                    alert(`✅ Arrival distance set to ${val} m`);
+                });
+            }
 
-            applyArrivalDistanceBtn.addEventListener('click', function() {
-                const val = parseFloat(arrivalDistanceSlider.value);
-                updateConfigInSheets('arrival_distance', val);
-                alert(`✅ Arrival distance set to ${val} m`);
-            });
+            if (applyMaxStaticFramesBtn) {
+                applyMaxStaticFramesBtn.addEventListener('click', function() {
+                    const val = parseInt(maxStaticFramesInput ? maxStaticFramesInput.value : 3);
+                    updateConfigInSheets('max_static_frames', val);
+                    alert(`✅ Static frames set to ${val}`);
+                });
+            }
 
-            applyMaxStaticFramesBtn.addEventListener('click', function() {
-                const val = parseInt(maxStaticFramesInput.value);
-                updateConfigInSheets('max_static_frames', val);
-                alert(`✅ Static frames set to ${val}`);
-            });
+            if (applyMinDetectionsBtn) {
+                applyMinDetectionsBtn.addEventListener('click', function() {
+                    const val = parseInt(minDetectionsInput ? minDetectionsInput.value : 3);
+                    updateConfigInSheets('min_detections', val);
+                    alert(`✅ Min detections set to ${val}`);
+                });
+            }
 
-            applyMinDetectionsBtn.addEventListener('click', function() {
-                const val = parseInt(minDetectionsInput.value);
-                updateConfigInSheets('min_detections', val);
-                alert(`✅ Min detections set to ${val}`);
-            });
+            if (saveAllConfigBtn) {
+                saveAllConfigBtn.addEventListener('click', saveAllConfig);
+            }
 
-            // Save All Config
-            saveAllConfigBtn.addEventListener('click', saveAllConfig);
-
-            // Reset Robot (moved to manual control, no page refresh)
-            resetRobotBtn.addEventListener('click', function() {
-                if (confirm('Reset robot to idle state?')) {
-                    publishMqtt('museum/admin/reset', { action: 'reset' });
-                    switchSection('welcome');
-                    if (demoMode) stopDemo();
-                    // No page refresh
-                }
-            });
+            // ==========================================
+            // RESET ROBOT
+            // ==========================================
+            if (resetRobotBtn) {
+                resetRobotBtn.addEventListener('click', function() {
+                    if (confirm('Reset robot to idle state?')) {
+                        publishMqtt('museum/admin/reset', { action: 'reset' });
+                        switchSection('welcome');
+                        if (demoMode) stopDemo();
+                    }
+                });
+            }
 
             // ==========================================
             // MANUAL CONTROL
@@ -2654,24 +2689,21 @@
                     if (!cmd) return;
                     publishMqtt(CONFIG.topicManualControl, { command: dir, linear_x: cmd.x, linear_y: cmd.y,
                         angular_z: cmd.z });
-                    manualStatus.textContent = `🚀 Sent: ${dirNames[dir] || dir}`;
-                    manualStatus.style.color = '#4ecdc4';
-                    setTimeout(() => {
-                        manualStatus.textContent = 'Tap a direction to send command';
-                        manualStatus.style.color = '#888';
-                    }, 2000);
+                    if (manualStatus) {
+                        manualStatus.textContent = `🚀 Sent: ${dirNames[dir] || dir}`;
+                        manualStatus.style.color = '#4ecdc4';
+                        setTimeout(() => {
+                            manualStatus.textContent = 'Tap a direction to send command';
+                            manualStatus.style.color = '#888';
+                        }, 2000);
+                    }
                 });
                 btn.addEventListener('touchstart', function(e) {}, { passive: true });
             });
 
             // ==========================================
-            // DEMO MODE – with fallback to hardcoded artifacts
+            // DEMO MODE – with fallback artifacts
             // ==========================================
-            let demoArtifacts = [];
-            let demoState = 'idle';
-            let demoStep = 0;
-
-            // Hardcoded fallback artifacts
             const DEFAULT_ARTIFACTS = [{
                 id: 'vase',
                 name: 'Ancient Ming Vase',
@@ -2722,20 +2754,22 @@
                 material_fr: 'Métaux variés'
             }];
 
+            let demoArtifacts = [];
+            let demoState = 'idle';
+            let demoStep = 0;
+
             async function loadDemoArtifacts() {
                 try {
                     const res = await fetch(CONFIG.sheetApiUrl + '?action=getArtifacts&_=' + Date.now());
                     const data = await res.json();
                     if (data.error) {
                         console.warn('Demo artifact load error:', data.error);
-                        // Use fallback
                         demoArtifacts = DEFAULT_ARTIFACTS;
-                        console.log('Using default artifacts for demo');
                         return;
                     }
                     const artifacts = data.artifacts || [];
                     if (artifacts.length === 0) {
-                        console.warn('No artifacts found in Google Sheets. Using default artifacts.');
+                        console.warn('No artifacts in Google Sheets. Using default artifacts.');
                         demoArtifacts = DEFAULT_ARTIFACTS;
                     } else {
                         demoArtifacts = artifacts;
@@ -2743,7 +2777,6 @@
                 } catch (e) {
                     console.warn('Failed to load demo artifacts:', e);
                     demoArtifacts = DEFAULT_ARTIFACTS;
-                    console.log('Using default artifacts for demo');
                 }
             }
 
@@ -2755,15 +2788,17 @@
             function startDemo() {
                 if (demoMode) return;
                 if (demoArtifacts.length === 0) {
-                    alert('No artifacts available for demo. Please check your database or refresh the page.');
-                    return;
+                    alert('No artifacts available for demo. Using default artifacts.');
+                    demoArtifacts = DEFAULT_ARTIFACTS;
                 }
                 demoMode = true;
                 demoState = 'idle';
                 demoStep = 0;
-                demoModeBtn.textContent = '⏹️ Stop Demo';
-                demoStatus.textContent = 'Demo: Running';
-                demoStatus.style.color = '#4ecdc4';
+                if (demoModeBtn) demoModeBtn.textContent = '⏹️ Stop Demo';
+                if (demoStatus) {
+                    demoStatus.textContent = 'Demo: Running';
+                    demoStatus.style.color = '#4ecdc4';
+                }
                 let temp = 24,
                     humid = 55;
 
@@ -2799,7 +2834,7 @@
                                             .demoTargetY,
                                         progress: 1.0, eta: 0 });
                                     handleState({ state: 'presenting' });
-                                    greetingBox.textContent = '👋 Hello! Welcome to the museum!';
+                                    if (greetingBox) greetingBox.textContent = '👋 Hello! Welcome to the museum!';
                                     const artifact = getRandomArtifact();
                                     if (artifact) {
                                         handleArtifact(artifact);
@@ -2831,29 +2866,35 @@
                     demoInterval = null; }
                 demoMode = false;
                 demoState = 'idle';
-                demoModeBtn.textContent = '▶️ Start Demo';
-                demoStatus.textContent = 'Demo: Off';
-                demoStatus.style.color = '#888';
+                if (demoModeBtn) demoModeBtn.textContent = '▶️ Start Demo';
+                if (demoStatus) {
+                    demoStatus.textContent = 'Demo: Off';
+                    demoStatus.style.color = '#888';
+                }
                 handleState({ state: 'idle' });
                 handleCrowd({ count: 0, moving: false });
-                progressFill.style.width = '0%';
-                etaDisplay.textContent = '⏱️ ETA: -- s';
-                coordDisplay.textContent = 'Target: (--, --)';
+                if (progressFill) progressFill.style.width = '0%';
+                if (etaDisplay) etaDisplay.textContent = '⏱️ ETA: -- s';
+                if (coordDisplay) coordDisplay.textContent = 'Target: (--, --)';
             }
 
-            demoModeBtn.addEventListener('click', function() {
-                if (demoMode) stopDemo();
-                else startDemo();
-            });
+            if (demoModeBtn) {
+                demoModeBtn.addEventListener('click', function() {
+                    if (demoMode) stopDemo();
+                    else startDemo();
+                });
+            }
 
             // ==========================================
             // CONFIG REFRESH BUTTON
             // ==========================================
-            refreshConfigBtn.addEventListener('click', function() {
-                loadConfigFromSheets();
-                this.textContent = '🔄 Loading...';
-                setTimeout(() => { this.textContent = '🔄 Refresh Config'; }, 3000);
-            });
+            if (refreshConfigBtn) {
+                refreshConfigBtn.addEventListener('click', function() {
+                    loadConfigFromSheets();
+                    this.textContent = '🔄 Loading...';
+                    setTimeout(() => { this.textContent = '🔄 Refresh Config'; }, 3000);
+                });
+            }
 
             // ==========================================
             // PUBLISH MQTT
@@ -2871,7 +2912,9 @@
             // ==========================================
             // PRESENTING BUTTONS
             // ==========================================
-            langButtons.forEach(function(btn) {
+
+            // Language buttons – re-fetch on each display update
+            document.querySelectorAll('.lang-buttons button').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     const lang = this.dataset.lang;
                     currentLang = lang;
@@ -2882,27 +2925,33 @@
                 });
             });
 
-            replayBtn.addEventListener('click', function() {
-                if (currentArtifactData) speakCurrentArtifact();
-                else alert('No artifact data to replay.');
-            });
+            if (replayBtn) {
+                replayBtn.addEventListener('click', function() {
+                    if (currentArtifactData) speakCurrentArtifact();
+                    else alert('No artifact data to replay.');
+                });
+            }
 
-            doneBtn.addEventListener('click', function() {
-                publishMqtt('museum/done', { action: 'done' });
-                artifactDisplay.classList.remove('active');
-                greetingBox.textContent = '👋 Thank you for visiting!';
-                switchSection('welcome');
-                sensorAlert.style.display = 'none';
-                sensorAlert.className = 'sensor-alert';
-                if (demoMode) {
-                    demoState = 'idle';
-                    progressFill.style.width = '0%';
-                    etaDisplay.textContent = '⏱️ ETA: -- s';
-                    coordDisplay.textContent = 'Target: (--, --)';
-                    crowdCountDisplay.textContent = '0';
-                }
-                currentArtifactData = null;
-            });
+            if (doneBtn) {
+                doneBtn.addEventListener('click', function() {
+                    publishMqtt('museum/done', { action: 'done' });
+                    if (artifactDisplay) artifactDisplay.classList.remove('active');
+                    if (greetingBox) greetingBox.textContent = '👋 Thank you for visiting!';
+                    switchSection('welcome');
+                    if (sensorAlert) {
+                        sensorAlert.style.display = 'none';
+                        sensorAlert.className = 'sensor-alert';
+                    }
+                    if (demoMode) {
+                        demoState = 'idle';
+                        if (progressFill) progressFill.style.width = '0%';
+                        if (etaDisplay) etaDisplay.textContent = '⏱️ ETA: -- s';
+                        if (coordDisplay) coordDisplay.textContent = 'Target: (--, --)';
+                        if (crowdCountDisplay) crowdCountDisplay.textContent = '0';
+                    }
+                    currentArtifactData = null;
+                });
+            }
 
             // ==========================================
             // LOAD VOICES
@@ -2931,30 +2980,25 @@
             console.log('📡 Connecting to MQTT broker:', CONFIG.mqttBroker);
             connectMQTT();
             switchSection('welcome');
-            tempDisplay.textContent = '--°C';
-            humidDisplay.textContent = '--%';
-            crowdCountDisplay.textContent = '0';
+            if (tempDisplay) tempDisplay.textContent = '--°C';
+            if (humidDisplay) humidDisplay.textContent = '--%';
+            if (crowdCountDisplay) crowdCountDisplay.textContent = '0';
 
             // Load config from Google Sheets
             loadConfigFromSheets();
-
-            // Load demo artifacts from Google Sheets (with fallback)
+            // Load demo artifacts with fallback
             loadDemoArtifacts();
-
             // Fetch charts
             fetchSensorHistory();
             fetchArtifactScans();
 
-            // Auto-refresh config every 30 seconds
+            // Auto-refresh
             setInterval(loadConfigFromSheets, 30000);
-
-            // Auto-refresh other data
             setInterval(fetchSensorHistory, 15000);
             setInterval(fetchArtifactScans, 30000);
             setInterval(refreshLogs, 15000);
 
             console.log('✅ Ready! Use "Start Demo" to simulate robot data.');
-
         })();
     </script>
 
