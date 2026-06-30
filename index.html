@@ -299,7 +299,7 @@
             height: 100% !important;
         }
 
-        /* Manual Control – always visible */
+        /* Manual Control */
         .manual-control-panel {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -592,7 +592,7 @@
         }
 
         /* ==========================================
-           ADMIN SECTION (login + config + artifact mgmt)
+           ADMIN SECTION (login + config + artifact mgmt + logs)
            ========================================== */
         #admin-section .admin-content {
             flex: 1;
@@ -731,7 +731,93 @@
             background: rgba(233, 69, 96, 0.25);
         }
 
-        /* Artifact management table */
+        /* Logs Table */
+        .log-table-wrap {
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .log-table th,
+        .log-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: left;
+        }
+
+        .log-table th {
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            background: #1a1a3e;
+        }
+
+        .log-table td {
+            color: #ccc;
+            font-size: 0.75rem;
+        }
+
+        .log-table .ack-btn {
+            background: rgba(78, 205, 196, 0.15);
+            border: 1px solid #4ecdc4;
+            color: #4ecdc4;
+            padding: 2px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            transition: 0.3s;
+        }
+
+        .log-table .ack-btn:hover {
+            background: rgba(78, 205, 196, 0.25);
+        }
+
+        .log-table .ack-btn.acknowledged {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #666;
+            color: #666;
+            cursor: default;
+        }
+
+        .log-table .status-badge {
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .log-table .status-badge.danger {
+            background: rgba(255, 50, 50, 0.15);
+            color: #ff6b6b;
+        }
+
+        .log-table .status-badge.warning {
+            background: rgba(255, 200, 50, 0.12);
+            color: #ffd93d;
+        }
+
+        .log-table .status-badge.good {
+            background: rgba(78, 205, 196, 0.12);
+            color: #4ecdc4;
+        }
+
+        .log-refresh {
+            font-size: 0.7rem;
+            color: #666;
+            text-align: right;
+        }
+
+        /* Artifact management */
         .artifact-table-wrap {
             overflow-x: auto;
         }
@@ -962,6 +1048,9 @@
                 height: 180px;
                 padding: 10px;
             }
+            .log-table-wrap {
+                max-height: 200px;
+            }
         }
 
         @media (max-width: 400px) {
@@ -1066,7 +1155,7 @@
             </div>
         </div>
 
-        <!-- ========== DRIVING (unchanged) ========== -->
+        <!-- ========== DRIVING ========== -->
         <div id="driving-section" class="section">
             <div class="driving-content">
                 <div class="driving-icon">🚗</div>
@@ -1079,7 +1168,7 @@
             </div>
         </div>
 
-        <!-- ========== PRESENTING (unchanged) ========== -->
+        <!-- ========== PRESENTING ========== -->
         <div id="presenting-section" class="section">
             <div class="presenting-content">
                 <div class="greeting-box" id="greetingBox">👋 Hello! Welcome to the museum!</div>
@@ -1124,6 +1213,8 @@
                     <div class="admin-tabs">
                         <button class="active" data-tab="config">Configuration</button>
                         <button data-tab="artifacts">Artifact Management</button>
+                        <button data-tab="alarms">🔔 Alarm Log</button>
+                        <button data-tab="movement">📍 Movement Log</button>
                     </div>
 
                     <!-- Configuration Tab -->
@@ -1159,7 +1250,7 @@
                             <button id="newArtifactBtn" style="background:rgba(78,205,196,0.15);border:1px solid #4ecdc4;color:#4ecdc4;padding:6px 16px;border-radius:20px;cursor:pointer;">➕ Add New</button>
                         </div>
 
-                        <!-- Artifact Form (add/edit) -->
+                        <!-- Artifact Form -->
                         <div class="artifact-form" id="artifactForm">
                             <h4 id="formTitle" style="color:#e94560;">Add Artifact</h4>
                             <div class="form-row">
@@ -1231,6 +1322,54 @@
                         </div>
                     </div>
 
+                    <!-- 🔔 Alarm Log Tab -->
+                    <div class="admin-tab-content" id="tab-alarms">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:5px;">
+                            <span style="color:#aaa;">Temperature & Humidity Alerts</span>
+                            <span class="log-refresh" id="alarmRefresh">Auto-refresh: 15s</span>
+                        </div>
+                        <div class="log-table-wrap">
+                            <table class="log-table" id="alarmTable">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Type</th>
+                                        <th>Message</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alarmTableBody">
+                                    <tr><td colspan="5" style="text-align:center; color:#666;">Loading alarms...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 📍 Movement Log Tab -->
+                    <div class="admin-tab-content" id="tab-movement">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:5px;">
+                            <span style="color:#aaa;">Robot Position History</span>
+                            <span class="log-refresh" id="movementRefresh">Auto-refresh: 15s</span>
+                        </div>
+                        <div class="log-table-wrap">
+                            <table class="log-table" id="movementTable">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Current X</th>
+                                        <th>Current Y</th>
+                                        <th>Target X</th>
+                                        <th>Target Y</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="movementTableBody">
+                                    <tr><td colspan="5" style="text-align:center; color:#666;">Loading movement logs...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <button id="adminLogoutBtn" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#888;padding:8px 20px;border-radius:20px;cursor:pointer;align-self:flex-start;margin-top:10px;">🚪 Logout</button>
                 </div>
             </div>
@@ -1264,8 +1403,7 @@
                 topicRobotPos: 'museum/robot_position',
                 topicManualControl: 'museum/manual_control',
                 adminPassword: '1234',
-                // Replace with your Apps Script URL
-                sheetApiUrl: 'https://script.google.com/macros/s/AKfycbxctPLlZdYKpfduwlC-QMxPxjsLNhI9nXE_9oyEVmxZxctRGyuPlGq6WDA5blxO6V5mTA/exec'
+                sheetApiUrl: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'
             };
 
             // ==========================================
@@ -1360,11 +1498,17 @@
             const formSaveBtn = document.getElementById('formSaveBtn');
             const newArtifactBtn = document.getElementById('newArtifactBtn');
 
+            // Logs refs
+            const alarmTableBody = document.getElementById('alarmTableBody');
+            const movementTableBody = document.getElementById('movementTableBody');
+
             // Admin tabs
             const tabButtons = document.querySelectorAll('.admin-tabs button');
             const tabContents = {
                 config: document.getElementById('tab-config'),
-                artifacts: document.getElementById('tab-artifacts')
+                artifacts: document.getElementById('tab-artifacts'),
+                alarms: document.getElementById('tab-alarms'),
+                movement: document.getElementById('tab-movement')
             };
 
             // ==========================================
@@ -1455,7 +1599,6 @@
                     historyChart.data.datasets[0].data = temps;
                     historyChart.data.datasets[1].data = hums;
                     historyChart.update('none');
-                    // Update latest values
                     const last = rows[rows.length - 1];
                     if (last) {
                         tempDisplay.textContent = parseFloat(last[1]).toFixed(1) + '°C';
@@ -1485,6 +1628,128 @@
             }
 
             // ==========================================
+            // LOAD ALARMS
+            // ==========================================
+            async function loadAlarms() {
+                try {
+                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getAlarms');
+                    const data = await res.json();
+                    if (data.error) {
+                        alarmTableBody.innerHTML =
+                            `<tr><td colspan="5" style="color:#e94560;">Error: ${data.error}</td></tr>`;
+                        return;
+                    }
+                    const alarms = data.alarms || [];
+                    if (alarms.length === 0) {
+                        alarmTableBody.innerHTML = `<tr><td colspan="5" style="color:#666;">No alarms recorded.</td></tr>`;
+                        return;
+                    }
+                    let html = '';
+                    alarms.forEach((a, idx) => {
+                        const acknowledged = a[3] === true || a[3] === 'TRUE' || a[3] === 'true';
+                        const statusClass = a[1] === 'Temperature' ? 'danger' : 'warning';
+                        html += `<tr>
+                            <td>${a[0]}</td>
+                            <td><span class="status-badge ${statusClass}">${a[1]}</span></td>
+                            <td>${a[2]}</td>
+                            <td>${acknowledged ? '✅ Acknowledged' : '⚠️ Pending'}</td>
+                            <td>
+                                ${!acknowledged ? `<button class="ack-btn" data-index="${idx}">Acknowledge</button>` : `<span class="ack-btn acknowledged">Done</span>`}
+                            </td>
+                        </tr>`;
+                    });
+                    alarmTableBody.innerHTML = html;
+                    // Add acknowledge listeners
+                    document.querySelectorAll('#alarmTableBody .ack-btn:not(.acknowledged)').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const index = this.dataset.index;
+                            acknowledgeAlarm(index);
+                        });
+                    });
+                } catch (e) {
+                    alarmTableBody.innerHTML = `<tr><td colspan="5" style="color:#e94560;">Error loading alarms.</td></tr>`;
+                }
+            }
+
+            async function acknowledgeAlarm(index) {
+                try {
+                    const res = await fetch(CONFIG.sheetApiUrl +
+                        `?action=acknowledgeAlarm&id=${encodeURIComponent(index)}`, { method: 'GET' });
+                    const data = await res.json();
+                    if (data.error) { alert('Acknowledge error: ' + data.error); return; }
+                    loadAlarms();
+                } catch (e) { console.error('Acknowledge failed:', e); }
+            }
+
+            // ==========================================
+            // LOAD MOVEMENT LOGS
+            // ==========================================
+            async function loadMovementLogs() {
+                try {
+                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getPositionLogs');
+                    const data = await res.json();
+                    if (data.error) {
+                        movementTableBody.innerHTML =
+                            `<tr><td colspan="5" style="color:#e94560;">Error: ${data.error}</td></tr>`;
+                        return;
+                    }
+                    const logs = data.logs || [];
+                    if (logs.length === 0) {
+                        movementTableBody.innerHTML =
+                        `<tr><td colspan="5" style="color:#666;">No movement logs available.</td></tr>`;
+                        return;
+                    }
+                    let html = '';
+                    logs.slice(-50).reverse().forEach(log => {
+                        html += `<tr>
+                            <td>${log[0]}</td>
+                            <td>${parseFloat(log[1]).toFixed(2)}</td>
+                            <td>${parseFloat(log[2]).toFixed(2)}</td>
+                            <td>${parseFloat(log[3]).toFixed(2)}</td>
+                            <td>${parseFloat(log[4]).toFixed(2)}</td>
+                        </tr>`;
+                    });
+                    movementTableBody.innerHTML = html;
+                } catch (e) {
+                    movementTableBody.innerHTML =
+                        `<tr><td colspan="5" style="color:#e94560;">Error loading movement logs.</td></tr>`;
+                }
+            }
+
+            // ==========================================
+            // LOAD CONFIG FROM GOOGLE SHEETS
+            // ==========================================
+            async function loadConfigFromSheets() {
+                try {
+                    const response = await fetch(CONFIG.sheetApiUrl + '?action=getConfig');
+                    const data = await response.json();
+                    if (data.error) {
+                        console.warn('Config load error:', data.error);
+                        return;
+                    }
+                    const config = data.config || {};
+                    if (config.min_range !== undefined) {
+                        const val = parseFloat(config.min_range);
+                        minRangeSlider.value = val;
+                        minRangeVal.textContent = val.toFixed(1);
+                    }
+                    if (config.max_range !== undefined) {
+                        const val = parseFloat(config.max_range);
+                        maxRangeSlider.value = val;
+                        maxRangeVal.textContent = val.toFixed(1);
+                    }
+                    if (config.max_speed !== undefined) {
+                        const val = parseFloat(config.max_speed);
+                        speedSlider.value = val;
+                        speedVal.textContent = val.toFixed(2);
+                    }
+                    console.log('✅ Config loaded from Google Sheets');
+                } catch (e) {
+                    console.warn('Failed to load config:', e);
+                }
+            }
+
+            // ==========================================
             // ARTIFACT MANAGEMENT (CRUD)
             // ==========================================
             let editingArtifactId = null;
@@ -1493,8 +1758,11 @@
                 try {
                     const res = await fetch(CONFIG.sheetApiUrl + '?action=getArtifacts');
                     const data = await res.json();
-                    if (data.error) { artifactTableBody.innerHTML =
-                        `<tr><td colspan="8" style="color:#e94560;">Error: ${data.error}</td></tr>`; return; }
+                    if (data.error) {
+                        artifactTableBody.innerHTML =
+                            `<tr><td colspan="8" style="color:#e94560;">Error: ${data.error}</td></tr>`;
+                        return;
+                    }
                     const artifacts = data.artifacts || [];
                     if (artifacts.length === 0) {
                         artifactTableBody.innerHTML = `<tr><td colspan="8" style="color:#666;">No artifacts found.</td></tr>`;
@@ -1517,7 +1785,6 @@
                         </tr>`;
                     });
                     artifactTableBody.innerHTML = html;
-                    // Add event listeners for edit/delete buttons
                     document.querySelectorAll('.edit-artifact').forEach(btn => {
                         btn.addEventListener('click', function() {
                             const id = this.dataset.id;
@@ -1532,12 +1799,13 @@
                             }
                         });
                     });
-                } catch (e) { artifactTableBody.innerHTML =
-                    `<tr><td colspan="8" style="color:#e94560;">Error loading artifacts.</td></tr>`; }
+                } catch (e) {
+                    artifactTableBody.innerHTML =
+                        `<tr><td colspan="8" style="color:#e94560;">Error loading artifacts.</td></tr>`;
+                }
             }
 
             function editArtifact(id) {
-                // Fetch artifact details and fill form
                 fetch(CONFIG.sheetApiUrl + `?action=getArtifact&id=${encodeURIComponent(id)}`)
                     .then(res => res.json())
                     .then(data => {
@@ -1583,62 +1851,60 @@
                     .catch(err => alert('Delete failed: ' + err));
             }
 
-function saveArtifact() {
-    const artifact = {
-        id: af_id.value.trim(),
-        name: af_name.value.trim(),
-        name_ms: af_name_ms.value.trim(),
-        name_fr: af_name_fr.value.trim(),
-        category: af_category.value.trim(),
-        category_ms: af_category_ms.value.trim(),
-        category_fr: af_category_fr.value.trim(),
-        year: af_year.value.trim(),
-        year_ms: af_year_ms.value.trim(),
-        year_fr: af_year_fr.value.trim(),
-        origin: af_origin.value.trim(),
-        origin_ms: af_origin_ms.value.trim(),
-        origin_fr: af_origin_fr.value.trim(),
-        material: af_material.value.trim(),
-        material_ms: af_material_ms.value.trim(),
-        material_fr: af_material_fr.value.trim(),
-        emoji: af_emoji.value.trim(),
-        image_url: af_image_url.value.trim(),
-        description: af_description.value.trim(),
-        description_ms: af_description_ms.value.trim(),
-        description_fr: af_description_fr.value.trim()
-    };
-    if (!artifact.id) { alert('ID is required.'); return; }
-    if (!artifact.name) { alert('Name is required.'); return; }
+            function saveArtifact() {
+                const artifact = {
+                    id: af_id.value.trim(),
+                    name: af_name.value.trim(),
+                    name_ms: af_name_ms.value.trim(),
+                    name_fr: af_name_fr.value.trim(),
+                    category: af_category.value.trim(),
+                    category_ms: af_category_ms.value.trim(),
+                    category_fr: af_category_fr.value.trim(),
+                    year: af_year.value.trim(),
+                    year_ms: af_year_ms.value.trim(),
+                    year_fr: af_year_fr.value.trim(),
+                    origin: af_origin.value.trim(),
+                    origin_ms: af_origin_ms.value.trim(),
+                    origin_fr: af_origin_fr.value.trim(),
+                    material: af_material.value.trim(),
+                    material_ms: af_material_ms.value.trim(),
+                    material_fr: af_material_fr.value.trim(),
+                    emoji: af_emoji.value.trim(),
+                    image_url: af_image_url.value.trim(),
+                    description: af_description.value.trim(),
+                    description_ms: af_description_ms.value.trim(),
+                    description_fr: af_description_fr.value.trim()
+                };
+                if (!artifact.id) { alert('ID is required.'); return; }
+                if (!artifact.name) { alert('Name is required.'); return; }
 
-    // Build form-urlencoded data
-    const formData = new URLSearchParams();
-    formData.append('action', 'updateArtifact');
-    formData.append('data', JSON.stringify(artifact));
+                const formData = new URLSearchParams();
+                formData.append('action', 'updateArtifact');
+                formData.append('data', JSON.stringify(artifact));
 
-    fetch(CONFIG.sheetApiUrl, {
-        method: 'POST',
-        body: formData,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.error) { alert('Save error: ' + data.error); return; }
-        alert('Artifact saved.');
-        artifactForm.classList.remove('active');
-        editingArtifactId = null;
-        loadArtifactTable();
-    })
-    .catch(err => alert('Save failed: ' + err));
-}
+                fetch(CONFIG.sheetApiUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.error) { alert('Save error: ' + data.error); return; }
+                        alert('Artifact saved.');
+                        artifactForm.classList.remove('active');
+                        editingArtifactId = null;
+                        loadArtifactTable();
+                    })
+                    .catch(err => alert('Save failed: ' + err));
+            }
 
             newArtifactBtn.addEventListener('click', function() {
                 editingArtifactId = null;
                 formTitle.textContent = 'Add Artifact';
-                // Clear form
-                ['af_id','af_name','af_name_ms','af_name_fr','af_category','af_category_ms','af_category_fr',
-                 'af_year','af_year_ms','af_year_fr','af_origin','af_origin_ms','af_origin_fr',
-                 'af_material','af_material_ms','af_material_fr','af_emoji','af_image_url',
-                 'af_description','af_description_ms','af_description_fr'
+                ['af_id', 'af_name', 'af_name_ms', 'af_name_fr', 'af_category', 'af_category_ms', 'af_category_fr',
+                    'af_year', 'af_year_ms', 'af_year_fr', 'af_origin', 'af_origin_ms', 'af_origin_fr',
+                    'af_material', 'af_material_ms', 'af_material_fr', 'af_emoji', 'af_image_url',
+                    'af_description', 'af_description_ms', 'af_description_fr'
                 ].forEach(id => document.getElementById(id).value = '');
                 artifactForm.classList.add('active');
             });
@@ -1663,12 +1929,16 @@ function saveArtifact() {
                     });
                     if (tab === 'artifacts') {
                         loadArtifactTable();
+                    } else if (tab === 'alarms') {
+                        loadAlarms();
+                    } else if (tab === 'movement') {
+                        loadMovementLogs();
                     }
                 });
             });
 
             // ==========================================
-            // MQTT (same as before, plus manual control)
+            // MQTT
             // ==========================================
             function connectMQTT() {
                 try {
@@ -1709,26 +1979,37 @@ function saveArtifact() {
                 try {
                     const data = JSON.parse(payload);
                     switch (topic) {
-                        case CONFIG.topicArtifact: handleArtifact(data); break;
-                        case CONFIG.topicWelcome: handleWelcome(data); break;
-                        case CONFIG.topicSensor: handleSensor(data); break;
-                        case CONFIG.topicCrowd: handleCrowd(data); break;
-                        case CONFIG.topicState: handleState(data); break;
-                        case CONFIG.topicRobotPos: handleRobotPos(data); break;
-                        default: console.log('📬 Unhandled topic:', topic);
+                        case CONFIG.topicArtifact:
+                            handleArtifact(data);
+                            break;
+                        case CONFIG.topicWelcome:
+                            handleWelcome(data);
+                            break;
+                        case CONFIG.topicSensor:
+                            handleSensor(data);
+                            break;
+                        case CONFIG.topicCrowd:
+                            handleCrowd(data);
+                            break;
+                        case CONFIG.topicState:
+                            handleState(data);
+                            break;
+                        case CONFIG.topicRobotPos:
+                            handleRobotPos(data);
+                            break;
+                        default:
+                            console.log('📬 Unhandled topic:', topic);
                     }
                 } catch (e) { console.warn('⚠️ Could not parse MQTT payload:', payload); }
             }
 
-            // --- Handlers (same as before) ---
+            // --- Handlers ---
             function handleArtifact(data) {
                 console.log('🏺 Artifact detected:', data);
                 currentArtifactData = data;
                 if (currentState !== 'presenting') switchSection('presenting');
                 displayArtifact(data, currentLang);
                 speakCurrentArtifact();
-                // Update scan count (optional: increment in sheet)
-                // We'll just refresh the scan chart later
                 fetchArtifactScans();
             }
 
@@ -1921,8 +2202,9 @@ function saveArtifact() {
                     adminPanel.classList.add('active');
                     adminLoginError.textContent = '';
                     adminPassword.value = '';
-                    // Load artifact data when admin logs in
                     loadArtifactTable();
+                    loadAlarms();
+                    loadMovementLogs();
                 } else {
                     adminLoginError.textContent = '❌ Incorrect password. Try again.';
                 }
@@ -1972,7 +2254,7 @@ function saveArtifact() {
             });
 
             // ==========================================
-            // MANUAL CONTROL (buttons on main page)
+            // MANUAL CONTROL
             // ==========================================
             const dirButtons = document.querySelectorAll('.manual-control-panel .dir-btn');
             const dirMap = {
@@ -2012,63 +2294,40 @@ function saveArtifact() {
             });
 
             // ==========================================
-            // DEMO MODE (same as before)
+            // DEMO MODE – FETCH FROM GOOGLE SHEETS
             // ==========================================
-            const demoArtifacts = [{
-                id: 'vase',
-                name: 'Ancient Ming Vase',
-                origin: 'China',
-                year: '15th Century',
-                material: 'Porcelain',
-                emoji: '🏺',
-                description: 'Exquisite porcelain vase from the Ming Dynasty (1368-1644).',
-                description_ms: 'Pasu porselin yang indah dari Dinasti Ming (1368-1644).',
-                description_fr: 'Vase en porcelaine exquis de la dynastie Ming (1368-1644).',
-                year_ms: 'Abad ke-15',
-                year_fr: '15ème siècle',
-                origin_ms: 'China',
-                origin_fr: 'Chine',
-                material_ms: 'Porselin',
-                material_fr: 'Porcelaine'
-            }, {
-                id: 'bronze',
-                name: 'Roman Bronze Sculpture',
-                origin: 'Roman Empire',
-                year: '100 AD',
-                material: 'Bronze',
-                emoji: '🗿',
-                description: 'Magnificent bronze sculpture of a Roman warrior.',
-                description_ms: 'Patung gangsa yang megah seorang pahlawan Rom.',
-                description_fr: 'Magnifique sculpture en bronze d\'un guerrier romain.',
-                year_ms: '100 Masihi',
-                year_fr: '100 après J.-C.',
-                origin_ms: 'Empayar Rom',
-                origin_fr: 'Empire romain',
-                material_ms: 'Gangsa',
-                material_fr: 'Bronze'
-            }, {
-                id: 'coins',
-                name: 'Ancient Coin Collection',
-                origin: 'Multiple Civilizations',
-                year: '500 BC - 100 AD',
-                material: 'Various Metals',
-                emoji: '🪙',
-                description: 'Rare collection of 25 coins from ancient civilizations.',
-                description_ms: 'Koleksi jarang 25 syiling dari tamadun purba.',
-                description_fr: 'Rare collection de 25 pièces de civilisations anciennes.',
-                year_ms: '500 SM - 100 Masihi',
-                year_fr: '500 av. J.-C. - 100 après J.-C.',
-                origin_ms: 'Pelbagai Tamadun',
-                origin_fr: 'Civilisations multiples',
-                material_ms: 'Pelbagai Logam',
-                material_fr: 'Métaux variés'
-            }];
-
+            let demoArtifacts = [];
             let demoState = 'idle';
             let demoStep = 0;
 
+            async function loadDemoArtifacts() {
+                try {
+                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getArtifacts');
+                    const data = await res.json();
+                    if (data.error) {
+                        console.warn('Demo artifact load error:', data.error);
+                        return;
+                    }
+                    demoArtifacts = data.artifacts || [];
+                    if (demoArtifacts.length === 0) {
+                        console.warn('No artifacts found for demo mode.');
+                    }
+                } catch (e) {
+                    console.warn('Failed to load demo artifacts:', e);
+                }
+            }
+
+            function getRandomArtifact() {
+                if (demoArtifacts.length === 0) return null;
+                return demoArtifacts[Math.floor(Math.random() * demoArtifacts.length)];
+            }
+
             function startDemo() {
                 if (demoMode) return;
+                if (demoArtifacts.length === 0) {
+                    alert('No artifacts loaded from Google Sheets. Please check your database.');
+                    return;
+                }
                 demoMode = true;
                 demoState = 'idle';
                 demoStep = 0;
@@ -2077,11 +2336,13 @@ function saveArtifact() {
                 demoStatus.style.color = '#4ecdc4';
                 let temp = 24,
                     humid = 55;
+
                 demoInterval = setInterval(() => {
                     demoStep++;
                     temp = 24 + Math.sin(demoStep * 0.1) * 2;
                     humid = 55 + Math.sin(demoStep * 0.15 + 1) * 5;
                     handleSensor({ temperature: temp, humidity: humid });
+
                     switch (demoState) {
                         case 'idle':
                             if (demoStep % 8 === 0) {
@@ -2109,9 +2370,11 @@ function saveArtifact() {
                                         progress: 1.0, eta: 0 });
                                     handleState({ state: 'presenting' });
                                     greetingBox.textContent = '👋 Hello! Welcome to the museum!';
-                                    const artifact = demoArtifacts[Math.floor(Math.random() * demoArtifacts.length)];
-                                    handleArtifact(artifact);
-                                    handleWelcome({ message: 'Hello! Welcome to the museum!' });
+                                    const artifact = getRandomArtifact();
+                                    if (artifact) {
+                                        handleArtifact(artifact);
+                                        handleWelcome({ message: 'Hello! Welcome to the museum!' });
+                                    }
                                     demoState = 'presenting';
                                 } else {
                                     window.demoEta = Math.max(0, (1 - window.demoProgress) * 8);
@@ -2203,13 +2466,23 @@ function saveArtifact() {
             });
 
             // ==========================================
-            // LOAD VOICES (for Web Speech)
+            // LOAD VOICES
             // ==========================================
             if (window.speechSynthesis) {
                 window.speechSynthesis.getVoices();
                 window.speechSynthesis.onvoiceschanged = function() {
                     window.speechSynthesis.getVoices();
                 };
+            }
+
+            // ==========================================
+            // AUTO-REFRESH LOGS
+            // ==========================================
+            function refreshLogs() {
+                if (adminLoggedIn) {
+                    loadAlarms();
+                    loadMovementLogs();
+                }
             }
 
             // ==========================================
@@ -2222,12 +2495,21 @@ function saveArtifact() {
             tempDisplay.textContent = '--°C';
             humidDisplay.textContent = '--%';
             crowdCountDisplay.textContent = '0';
+
+            // Load config from Google Sheets
+            loadConfigFromSheets();
+
+            // Load demo artifacts from Google Sheets
+            loadDemoArtifacts();
+
             // Fetch charts
             fetchSensorHistory();
             fetchArtifactScans();
-            // Refresh every 15 seconds
+
+            // Auto-refresh
             setInterval(fetchSensorHistory, 15000);
             setInterval(fetchArtifactScans, 30000);
+            setInterval(refreshLogs, 15000);
 
             console.log('✅ Ready! Use "Start Demo" to simulate robot data.');
 
