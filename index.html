@@ -14,7 +14,7 @@
 
     <style>
         /* ==========================================
-           RESET & BASE (same as before)
+           RESET & BASE
            ========================================== */
         * {
             margin: 0;
@@ -70,7 +70,7 @@
         }
 
         /* ==========================================
-           TOP BAR (unchanged)
+           TOP BAR
            ========================================== */
         .top-bar {
             display: flex;
@@ -299,7 +299,9 @@
             height: 100% !important;
         }
 
-        /* Manual Control */
+        /* ==========================================
+           MANUAL CONTROL
+           ========================================== */
         .manual-control-panel {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -354,7 +356,7 @@
         }
 
         /* ==========================================
-           DRIVING (unchanged)
+           DRIVING
            ========================================== */
         #driving-section .driving-content {
             flex: 1;
@@ -423,7 +425,7 @@
         }
 
         /* ==========================================
-           PRESENTING (unchanged)
+           PRESENTING
            ========================================== */
         #presenting-section .presenting-content {
             flex: 1;
@@ -592,7 +594,7 @@
         }
 
         /* ==========================================
-           ADMIN SECTION (login + config + artifact mgmt + logs)
+           ADMIN SECTION
            ========================================== */
         #admin-section .admin-content {
             flex: 1;
@@ -681,7 +683,6 @@
             display: flex;
         }
 
-        /* Configuration group */
         .setting-group {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -731,7 +732,6 @@
             background: rgba(233, 69, 96, 0.25);
         }
 
-        /* Logs Table */
         .log-table-wrap {
             overflow-x: auto;
             max-height: 300px;
@@ -817,7 +817,6 @@
             text-align: right;
         }
 
-        /* Artifact management */
         .artifact-table-wrap {
             overflow-x: auto;
         }
@@ -968,9 +967,6 @@
             border-radius: 10px;
         }
 
-        /* ==========================================
-           RESPONSIVE
-           ========================================== */
         @media (max-width: 800px) {
             .chart-grid {
                 grid-template-columns: 1fr;
@@ -1132,7 +1128,7 @@
                     </div>
                 </div>
 
-                <!-- Manual Control (always visible) -->
+                <!-- Manual Control -->
                 <div class="manual-control-panel">
                     <div style="text-align:center; font-weight:600; color:#aaa; margin-bottom:6px;">🕹️ Manual Control</div>
                     <div class="btn-grid">
@@ -1145,6 +1141,10 @@
                         <button class="dir-btn" data-dir="rotate_right">↻</button>
                     </div>
                     <div class="status-text" id="manualStatus">Tap a direction to send command</div>
+                    <!-- Reset Button inside Manual Control -->
+                    <div style="margin-top: 12px; text-align: center;">
+                        <button id="resetRobotBtn" style="background: rgba(233, 69, 96, 0.15); border: 1px solid #e94560; color: #e94560; padding: 6px 20px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: 0.3s;">🔄 Reset Robot</button>
+                    </div>
                 </div>
 
                 <!-- Demo Mode Toggle -->
@@ -1205,7 +1205,7 @@
                     <span style="color:#888;font-size:0.8rem;" id="adminLoginError"></span>
                 </div>
 
-                <!-- Admin Panel (login required) -->
+                <!-- Admin Panel -->
                 <div class="admin-panel" id="adminPanel">
                     <h2>⚙️ Administration</h2>
 
@@ -1236,11 +1236,7 @@
                             <button id="applySpeedBtn">Apply</button>
                         </div>
 
-                        <div class="setting-group">
-                            <label>Robot State</label>
-                            <span style="color:#4ecdc4;" id="adminStateLabel">Idle</span>
-                            <button id="adminResetBtn">🔄 Reset Robot</button>
-                        </div>
+                        <!-- Reset button removed from here -->
                     </div>
 
                     <!-- Artifact Management Tab -->
@@ -1250,7 +1246,6 @@
                             <button id="newArtifactBtn" style="background:rgba(78,205,196,0.15);border:1px solid #4ecdc4;color:#4ecdc4;padding:6px 16px;border-radius:20px;cursor:pointer;">➕ Add New</button>
                         </div>
 
-                        <!-- Artifact Form -->
                         <div class="artifact-form" id="artifactForm">
                             <h4 id="formTitle" style="color:#e94560;">Add Artifact</h4>
                             <div class="form-row">
@@ -1300,7 +1295,6 @@
                             </div>
                         </div>
 
-                        <!-- Artifact Table -->
                         <div class="artifact-table-wrap">
                             <table class="artifact-table" id="artifactTable">
                                 <thead>
@@ -1322,7 +1316,7 @@
                         </div>
                     </div>
 
-                    <!-- 🔔 Alarm Log Tab -->
+                    <!-- Alarm Log Tab -->
                     <div class="admin-tab-content" id="tab-alarms">
                         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:5px;">
                             <span style="color:#aaa;">Temperature & Humidity Alerts</span>
@@ -1346,7 +1340,7 @@
                         </div>
                     </div>
 
-                    <!-- 📍 Movement Log Tab -->
+                    <!-- Movement Log Tab -->
                     <div class="admin-tab-content" id="tab-movement">
                         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:5px;">
                             <span style="color:#aaa;">Robot Position History</span>
@@ -1403,6 +1397,7 @@
                 topicRobotPos: 'museum/robot_position',
                 topicManualControl: 'museum/manual_control',
                 adminPassword: '1234',
+                // Your provided Apps Script URL
                 sheetApiUrl: 'https://script.google.com/macros/s/AKfycbxctPLlZdYKpfduwlC-QMxPxjsLNhI9nXE_9oyEVmxZxctRGyuPlGq6WDA5blxO6V5mTA/exec'
             };
 
@@ -1464,10 +1459,10 @@
             const speedVal = document.getElementById('speedVal');
             const applyRangeBtn = document.getElementById('applyRangeBtn');
             const applySpeedBtn = document.getElementById('applySpeedBtn');
-            const adminResetBtn = document.getElementById('adminResetBtn');
             const manualStatus = document.getElementById('manualStatus');
             const mqttDot = document.getElementById('mqttDot');
             const mqttLabel = document.getElementById('mqttLabel');
+            const resetRobotBtn = document.getElementById('resetRobotBtn');
 
             // Artifact management refs
             const artifactTableBody = document.getElementById('artifactTableBody');
@@ -1659,7 +1654,6 @@
                         </tr>`;
                     });
                     alarmTableBody.innerHTML = html;
-                    // Add acknowledge listeners
                     document.querySelectorAll('#alarmTableBody .ack-btn:not(.acknowledged)').forEach(btn => {
                         btn.addEventListener('click', function() {
                             const index = this.dataset.index;
@@ -1746,6 +1740,31 @@
                     console.log('✅ Config loaded from Google Sheets');
                 } catch (e) {
                     console.warn('Failed to load config:', e);
+                }
+            }
+
+            // ==========================================
+            // UPDATE CONFIG IN GOOGLE SHEETS
+            // ==========================================
+            async function updateConfigInSheets(param, value) {
+                try {
+                    const formData = new URLSearchParams();
+                    formData.append('action', 'updateConfig');
+                    formData.append('param', param);
+                    formData.append('value', value);
+                    const response = await fetch(CONFIG.sheetApiUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                    });
+                    const data = await response.json();
+                    if (data.error) {
+                        console.warn('Config update error:', data.error);
+                    } else {
+                        console.log(`✅ Config ${param} updated to ${value} in Google Sheets`);
+                    }
+                } catch (e) {
+                    console.warn('Failed to update config:', e);
                 }
             }
 
@@ -2066,7 +2085,7 @@
             }
 
             // ==========================================
-            // DISPLAY ARTIFACT (multi-language)
+            // DISPLAY ARTIFACT
             // ==========================================
             function displayArtifact(artifact, lang) {
                 if (!artifact) return;
@@ -2106,7 +2125,7 @@
             }
 
             // ==========================================
-            // SPEAK (Web Speech API)
+            // SPEAK
             // ==========================================
             function speakCurrentArtifact() {
                 if (!window.currentSpeakText) return;
@@ -2223,7 +2242,7 @@
             });
 
             // ==========================================
-            // CONFIGURATION CONTROLS
+            // CONFIGURATION CONTROLS (UPDATED)
             // ==========================================
             minRangeSlider.addEventListener('input', function() { minRangeVal.textContent = parseFloat(this.value)
                     .toFixed(1); });
@@ -2232,24 +2251,33 @@
             speedSlider.addEventListener('input', function() { speedVal.textContent = parseFloat(this.value)
                 .toFixed(2); });
 
+            // Apply Range – sends MQTT + updates Google Sheets
             applyRangeBtn.addEventListener('click', function() {
                 const min = parseFloat(minRangeSlider.value);
                 const max = parseFloat(maxRangeSlider.value);
+                // Update robot via MQTT
                 publishMqtt('museum/admin/range', { min: min, max: max });
+                // Update Google Sheets for persistence
+                updateConfigInSheets('min_range', min);
+                updateConfigInSheets('max_range', max);
                 alert(`✅ Detection range set to ${min}m - ${max}m`);
             });
 
+            // Apply Speed – sends MQTT + updates Google Sheets
             applySpeedBtn.addEventListener('click', function() {
                 const speed = parseFloat(speedSlider.value);
                 publishMqtt('museum/admin/speed', { speed: speed });
+                updateConfigInSheets('max_speed', speed);
                 alert(`✅ Movement speed set to ${speed.toFixed(2)} m/s`);
             });
 
-            adminResetBtn.addEventListener('click', function() {
+            // Reset Robot (moved to manual control, page does NOT refresh)
+            resetRobotBtn.addEventListener('click', function() {
                 if (confirm('Reset robot to idle state?')) {
                     publishMqtt('museum/admin/reset', { action: 'reset' });
                     switchSection('welcome');
                     if (demoMode) stopDemo();
+                    // No page refresh
                 }
             });
 
@@ -2294,7 +2322,7 @@
             });
 
             // ==========================================
-            // DEMO MODE – FETCH FROM GOOGLE SHEETS
+            // DEMO MODE
             // ==========================================
             let demoArtifacts = [];
             let demoState = 'idle';
