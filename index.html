@@ -146,7 +146,7 @@
         }
 
         /* ==========================================
-           WELCOME / DASHBOARD
+           WELCOME / DASHBOARD (Clean – no charts)
            ========================================== */
         #welcome-section .welcome-content {
             flex: 1;
@@ -280,32 +280,6 @@
             color: #ffd93d;
         }
 
-        .chart-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            width: 100%;
-            max-width: 1000px;
-            margin-top: 20px;
-        }
-
-        .chart-container {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 15px;
-            position: relative;
-            height: 220px;
-        }
-
-        .chart-container canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        /* ==========================================
-           MANUAL CONTROL
-           ========================================== */
         .manual-control-panel {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -377,6 +351,35 @@
 
         .manual-control-panel .reset-wrap button:hover {
             background: rgba(233, 69, 96, 0.25);
+        }
+
+        .demo-wrap {
+            margin-top: 15px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .demo-wrap button {
+            background: rgba(78, 205, 196, 0.15);
+            border: 1px solid #4ecdc4;
+            color: #4ecdc4;
+            padding: 8px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .demo-wrap button:hover {
+            background: rgba(78, 205, 196, 0.25);
+        }
+
+        .demo-wrap span {
+            color: #888;
+            font-size: 0.85rem;
+            align-self: center;
         }
 
         /* ==========================================
@@ -826,6 +829,30 @@
             background: #3ab0a8;
         }
 
+        /* Charts in Admin */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 5px;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 15px;
+            position: relative;
+            height: 220px;
+        }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
         .log-table-wrap {
             overflow-x: auto;
             max-height: 300px;
@@ -1022,9 +1049,6 @@
             background: rgba(233, 69, 96, 0.25);
         }
 
-        /* ==========================================
-           MQTT STATUS
-           ========================================== */
         .mqtt-status {
             margin-top: 10px;
             font-size: 0.7rem;
@@ -1061,9 +1085,6 @@
             border-radius: 10px;
         }
 
-        /* ==========================================
-           RESPONSIVE
-           ========================================== */
         @media (max-width: 800px) {
             .chart-grid {
                 grid-template-columns: 1fr;
@@ -1191,7 +1212,7 @@
             <button class="admin-btn" id="adminToggleBtn">⚙️ Admin</button>
         </div>
 
-        <!-- ========== WELCOME / DASHBOARD ========== -->
+        <!-- ========== WELCOME / DASHBOARD (Clean – no charts) ========== -->
         <div id="welcome-section" class="section active">
             <div class="welcome-content">
                 <div class="robot-face">
@@ -1201,7 +1222,7 @@
                 <h2>Welcome to the <strong>Museum</strong></h2>
                 <p class="sub">I'm your autonomous guide. I'll detect crowds, move to them, and present artifacts.</p>
 
-                <!-- Sensor Cards – INCLUDES CROWD AND LOCATION -->
+                <!-- Sensor Cards -->
                 <div class="sensor-row">
                     <div class="sensor-card">
                         <div class="value temp" id="tempDisplay">--</div>
@@ -1223,16 +1244,6 @@
 
                 <div id="sensorAlert" class="sensor-alert"></div>
 
-                <!-- Charts -->
-                <div class="chart-grid">
-                    <div class="chart-container">
-                        <canvas id="historyChart"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="artifactScanChart"></canvas>
-                    </div>
-                </div>
-
                 <!-- Manual Control -->
                 <div class="manual-control-panel">
                     <div style="text-align:center; font-weight:600; color:#aaa; margin-bottom:6px;">🕹️ Manual Control</div>
@@ -1251,10 +1262,10 @@
                     </div>
                 </div>
 
-                <!-- Demo Mode Toggle -->
-                <div style="margin-top: 15px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-                    <button id="demoModeBtn" style="background: rgba(78, 205, 196, 0.15); border: 1px solid #4ecdc4; color: #4ecdc4; padding: 8px 24px; border-radius: 30px; cursor: pointer; font-size: 0.9rem;">▶️ Start Demo</button>
-                    <span id="demoStatus" style="color: #888; font-size: 0.85rem; align-self: center;">Demo: Off</span>
+                <!-- Demo Mode -->
+                <div class="demo-wrap">
+                    <button id="demoModeBtn">▶️ Start Demo</button>
+                    <span id="demoStatus">Demo: Off</span>
                 </div>
             </div>
         </div>
@@ -1313,12 +1324,13 @@
                 <div class="admin-panel" id="adminPanel">
                     <h2>⚙️ Administration</h2>
 
-                    <!-- Tabs -->
+                    <!-- Tabs (added Charts) -->
                     <div class="admin-tabs">
                         <button class="active" data-tab="config">Configuration</button>
                         <button data-tab="artifacts">Artifact Management</button>
                         <button data-tab="alarms">🔔 Alarm Log</button>
                         <button data-tab="movement">📍 Movement Log</button>
+                        <button data-tab="charts">📊 Charts</button>
                     </div>
 
                     <!-- Configuration Tab -->
@@ -1328,7 +1340,6 @@
                             <button id="refreshConfigBtn">🔄 Refresh Config</button>
                         </div>
 
-                        <!-- Detection Range -->
                         <div class="setting-group">
                             <label>Detection Range</label>
                             <input type="range" id="minRangeSlider" min="0.1" max="5.0" step="0.1" value="0.5" />
@@ -1340,7 +1351,6 @@
                             <div class="description">Minimum and maximum detection distance (m)</div>
                         </div>
 
-                        <!-- Angle -->
                         <div class="setting-group">
                             <label>Detection Angle</label>
                             <input type="number" id="angleMinInput" min="-180" max="180" step="1" value="-90" style="flex:0 0 80px;" />
@@ -1351,7 +1361,6 @@
                             <div class="description">Left and right angle boundaries (degrees)</div>
                         </div>
 
-                        <!-- Sensitivity -->
                         <div class="setting-group">
                             <label>Sensitivity (eps)</label>
                             <input type="range" id="sensitivitySlider" min="0.05" max="0.5" step="0.01" value="0.15" />
@@ -1360,7 +1369,6 @@
                             <div class="description">DBSCAN clustering distance threshold</div>
                         </div>
 
-                        <!-- Min Samples -->
                         <div class="setting-group">
                             <label>Min Samples</label>
                             <input type="number" id="minSamplesInput" min="3" max="20" step="1" value="8" style="flex:0 0 80px;" />
@@ -1368,7 +1376,6 @@
                             <div class="description">Minimum points to form a cluster</div>
                         </div>
 
-                        <!-- Movement Threshold -->
                         <div class="setting-group">
                             <label>Movement Threshold</label>
                             <input type="range" id="movementThresholdSlider" min="0.05" max="0.5" step="0.01" value="0.2" />
@@ -1377,7 +1384,6 @@
                             <div class="description">Distance an object must move to be considered moving (m)</div>
                         </div>
 
-                        <!-- Movement Speed -->
                         <div class="setting-group">
                             <label>Movement Speed</label>
                             <input type="range" id="speedSlider" min="0.1" max="1.0" step="0.05" value="0.5" />
@@ -1386,7 +1392,6 @@
                             <div class="description">Robot max speed (m/s)</div>
                         </div>
 
-                        <!-- Arrival Distance -->
                         <div class="setting-group">
                             <label>Arrival Distance</label>
                             <input type="range" id="arrivalDistanceSlider" min="0.2" max="2.0" step="0.1" value="1.0" />
@@ -1395,7 +1400,6 @@
                             <div class="description">Stop distance from crowd (m)</div>
                         </div>
 
-                        <!-- Max Static Frames -->
                         <div class="setting-group">
                             <label>Static Frames</label>
                             <input type="number" id="maxStaticFramesInput" min="1" max="10" step="1" value="3" style="flex:0 0 80px;" />
@@ -1403,7 +1407,6 @@
                             <div class="description">Number of frames before object is considered static</div>
                         </div>
 
-                        <!-- Min Detections -->
                         <div class="setting-group">
                             <label>Min Detections</label>
                             <input type="number" id="minDetectionsInput" min="1" max="10" step="1" value="3" style="flex:0 0 80px;" />
@@ -1411,7 +1414,6 @@
                             <div class="description">Consecutive detections required to confirm a person</div>
                         </div>
 
-                        <!-- Save All -->
                         <div class="save-all-wrap">
                             <button id="saveAllConfigBtn">💾 Save All Config</button>
                         </div>
@@ -1539,6 +1541,22 @@
                                     <tr><td colspan="5" style="text-align:center; color:#666;">Loading movement logs...</td></tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    <!-- Charts Tab -->
+                    <div class="admin-tab-content" id="tab-charts">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:5px;">
+                            <span style="color:#aaa;">Historical Data & Artifact Scans</span>
+                            <span class="log-refresh">Auto-refresh: 15s</span>
+                        </div>
+                        <div class="chart-grid">
+                            <div class="chart-container">
+                                <canvas id="historyChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="artifactScanChart"></canvas>
+                            </div>
                         </div>
                     </div>
 
@@ -1706,7 +1724,8 @@
                 config: getEl('tab-config'),
                 artifacts: getEl('tab-artifacts'),
                 alarms: getEl('tab-alarms'),
-                movement: getEl('tab-movement')
+                movement: getEl('tab-movement'),
+                charts: getEl('tab-charts'),
             };
 
             let langButtons = [];
@@ -2214,7 +2233,7 @@
             }
 
             // ==========================================
-            // ADMIN TABS
+            // ADMIN TABS (with Charts resize)
             // ==========================================
             if (tabButtons) {
                 tabButtons.forEach(btn => {
@@ -2229,6 +2248,13 @@
                         if (tab === 'artifacts') loadArtifactTable();
                         else if (tab === 'alarms') loadAlarms();
                         else if (tab === 'movement') loadMovementLogs();
+                        else if (tab === 'charts') {
+                            // Resize charts when Charts tab is activated
+                            setTimeout(() => {
+                                historyChart.resize();
+                                scanChart.resize();
+                            }, 100);
+                        }
                     });
                 });
             }
@@ -2331,7 +2357,6 @@
                 console.log('👥 Crowd data:', data);
                 if (data.count !== undefined && crowdCountDisplay) crowdCountDisplay.textContent = data.count;
 
-                // Update crowd location display
                 if (crowdLocationDisplay) {
                     if (data.target_x !== undefined && data.target_y !== undefined) {
                         crowdLocationDisplay.textContent = `(${data.target_x.toFixed(1)}, ${data.target_y.toFixed(1)})`;
@@ -2349,7 +2374,6 @@
                     if (data.eta !== undefined && etaDisplay) etaDisplay.textContent = `⏱️ ETA: ${data.eta.toFixed(1)} s`;
                 }
                 if (data.count === 0 && currentState === 'idle') {
-                    // Optionally clear location when no crowd
                     if (crowdLocationDisplay) crowdLocationDisplay.textContent = '--';
                 }
             }
