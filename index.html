@@ -355,6 +355,26 @@
             margin-top: 8px;
         }
 
+        .manual-control-panel .reset-wrap {
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .manual-control-panel .reset-wrap button {
+            background: rgba(233, 69, 96, 0.15);
+            border: 1px solid #e94560;
+            color: #e94560;
+            padding: 6px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+
+        .manual-control-panel .reset-wrap button:hover {
+            background: rgba(233, 69, 96, 0.25);
+        }
+
         /* ==========================================
            DRIVING
            ========================================== */
@@ -709,6 +729,17 @@
             border-radius: 4px;
         }
 
+        .setting-group input[type="number"] {
+            flex: 0 0 80px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #eee;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            width: 80px;
+        }
+
         .setting-group .val {
             color: #4ecdc4;
             font-weight: 600;
@@ -717,7 +748,7 @@
             font-size: 0.9rem;
         }
 
-        .setting-group button {
+        .setting-group .update-btn {
             background: rgba(233, 69, 96, 0.15);
             border: 1px solid rgba(233, 69, 96, 0.2);
             color: #e94560;
@@ -728,8 +759,67 @@
             font-size: 0.8rem;
         }
 
-        .setting-group button:hover {
+        .setting-group .update-btn:hover {
             background: rgba(233, 69, 96, 0.25);
+        }
+
+        .setting-group .description {
+            color: #666;
+            font-size: 0.7rem;
+            width: 100%;
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .config-refresh-wrap {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .config-refresh-wrap button {
+            background: rgba(78, 205, 196, 0.15);
+            border: 1px solid #4ecdc4;
+            color: #4ecdc4;
+            padding: 4px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.3s;
+        }
+
+        .config-refresh-wrap button:hover {
+            background: rgba(78, 205, 196, 0.25);
+        }
+
+        .config-status {
+            font-size: 0.7rem;
+            color: #666;
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .save-all-wrap {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 5px;
+        }
+
+        .save-all-wrap button {
+            background: #4ecdc4;
+            border: none;
+            color: #0a0a1a;
+            padding: 8px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .save-all-wrap button:hover {
+            background: #3ab0a8;
         }
 
         .log-table-wrap {
@@ -1047,6 +1137,10 @@
             .log-table-wrap {
                 max-height: 200px;
             }
+            .setting-group input[type="number"] {
+                flex: 0 0 60px;
+                width: 60px;
+            }
         }
 
         @media (max-width: 400px) {
@@ -1100,7 +1194,7 @@
                 <h2>Welcome to the <strong>Museum</strong></h2>
                 <p class="sub">I'm your autonomous guide. I'll detect crowds, move to them, and present artifacts.</p>
 
-                <!-- Sensor Cards -->
+                <!-- Sensor Cards – includes crowd count -->
                 <div class="sensor-row">
                     <div class="sensor-card">
                         <div class="value temp" id="tempDisplay">--</div>
@@ -1141,9 +1235,8 @@
                         <button class="dir-btn" data-dir="rotate_right">↻</button>
                     </div>
                     <div class="status-text" id="manualStatus">Tap a direction to send command</div>
-                    <!-- Reset Button inside Manual Control -->
-                    <div style="margin-top: 12px; text-align: center;">
-                        <button id="resetRobotBtn" style="background: rgba(233, 69, 96, 0.15); border: 1px solid #e94560; color: #e94560; padding: 6px 20px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: 0.3s;">🔄 Reset Robot</button>
+                    <div class="reset-wrap">
+                        <button id="resetRobotBtn">🔄 Reset Robot</button>
                     </div>
                 </div>
 
@@ -1219,6 +1312,12 @@
 
                     <!-- Configuration Tab -->
                     <div class="admin-tab-content active" id="tab-config">
+                        <div class="config-refresh-wrap">
+                            <span class="config-status" id="configLoadStatus">✅ Config loaded</span>
+                            <button id="refreshConfigBtn">🔄 Refresh Config</button>
+                        </div>
+
+                        <!-- Detection Range (Min & Max) -->
                         <div class="setting-group">
                             <label>Detection Range</label>
                             <input type="range" id="minRangeSlider" min="0.1" max="5.0" step="0.1" value="0.5" />
@@ -1226,17 +1325,85 @@
                             <span style="color:#666;">to</span>
                             <input type="range" id="maxRangeSlider" min="0.5" max="10.0" step="0.5" value="5.0" />
                             <span class="val" id="maxRangeVal">5.0</span>
-                            <button id="applyRangeBtn">Apply</button>
+                            <button class="update-btn" id="applyRangeBtn">Apply</button>
+                            <div class="description">Minimum and maximum detection distance (m)</div>
                         </div>
 
+                        <!-- Angle Min & Max -->
+                        <div class="setting-group">
+                            <label>Detection Angle</label>
+                            <input type="number" id="angleMinInput" min="-180" max="180" step="1" value="-90" style="flex:0 0 80px;" />
+                            <span style="color:#666;">° to</span>
+                            <input type="number" id="angleMaxInput" min="-180" max="180" step="1" value="90" style="flex:0 0 80px;" />
+                            <span style="color:#666;">°</span>
+                            <button class="update-btn" id="applyAngleBtn">Apply</button>
+                            <div class="description">Left and right angle boundaries (degrees)</div>
+                        </div>
+
+                        <!-- Sensitivity (eps) -->
+                        <div class="setting-group">
+                            <label>Sensitivity (eps)</label>
+                            <input type="range" id="sensitivitySlider" min="0.05" max="0.5" step="0.01" value="0.15" />
+                            <span class="val" id="sensitivityVal">0.15</span>
+                            <button class="update-btn" id="applySensitivityBtn">Apply</button>
+                            <div class="description">DBSCAN clustering distance threshold</div>
+                        </div>
+
+                        <!-- Min Samples -->
+                        <div class="setting-group">
+                            <label>Min Samples</label>
+                            <input type="number" id="minSamplesInput" min="3" max="20" step="1" value="8" style="flex:0 0 80px;" />
+                            <button class="update-btn" id="applyMinSamplesBtn">Apply</button>
+                            <div class="description">Minimum points to form a cluster</div>
+                        </div>
+
+                        <!-- Movement Threshold -->
+                        <div class="setting-group">
+                            <label>Movement Threshold</label>
+                            <input type="range" id="movementThresholdSlider" min="0.05" max="0.5" step="0.01" value="0.2" />
+                            <span class="val" id="movementThresholdVal">0.20</span>
+                            <button class="update-btn" id="applyMovementThresholdBtn">Apply</button>
+                            <div class="description">Distance an object must move to be considered moving (m)</div>
+                        </div>
+
+                        <!-- Movement Speed (max_speed) -->
                         <div class="setting-group">
                             <label>Movement Speed</label>
                             <input type="range" id="speedSlider" min="0.1" max="1.0" step="0.05" value="0.5" />
                             <span class="val" id="speedVal">0.5</span>
-                            <button id="applySpeedBtn">Apply</button>
+                            <button class="update-btn" id="applySpeedBtn">Apply</button>
+                            <div class="description">Robot max speed (m/s)</div>
                         </div>
 
-                        <!-- Reset button removed from here -->
+                        <!-- Arrival Distance -->
+                        <div class="setting-group">
+                            <label>Arrival Distance</label>
+                            <input type="range" id="arrivalDistanceSlider" min="0.2" max="2.0" step="0.1" value="1.0" />
+                            <span class="val" id="arrivalDistanceVal">1.0</span>
+                            <button class="update-btn" id="applyArrivalDistanceBtn">Apply</button>
+                            <div class="description">Stop distance from crowd (m)</div>
+                        </div>
+
+                        <!-- Max Static Frames -->
+                        <div class="setting-group">
+                            <label>Static Frames</label>
+                            <input type="number" id="maxStaticFramesInput" min="1" max="10" step="1" value="3" style="flex:0 0 80px;" />
+                            <button class="update-btn" id="applyMaxStaticFramesBtn">Apply</button>
+                            <div class="description">Number of frames before object is considered static</div>
+                        </div>
+
+                        <!-- Min Detections -->
+                        <div class="setting-group">
+                            <label>Min Detections</label>
+                            <input type="number" id="minDetectionsInput" min="1" max="10" step="1" value="3" style="flex:0 0 80px;" />
+                            <button class="update-btn" id="applyMinDetectionsBtn">Apply</button>
+                            <div class="description">Consecutive detections required to confirm a person</div>
+                        </div>
+
+                        <!-- Save All Button -->
+                        <div class="save-all-wrap">
+                            <button id="saveAllConfigBtn">💾 Save All Config</button>
+                        </div>
                     </div>
 
                     <!-- Artifact Management Tab -->
@@ -1397,7 +1564,6 @@
                 topicRobotPos: 'museum/robot_position',
                 topicManualControl: 'museum/manual_control',
                 adminPassword: '1234',
-                // Your provided Apps Script URL
                 sheetApiUrl: 'https://script.google.com/macros/s/AKfycbxctPLlZdYKpfduwlC-QMxPxjsLNhI9nXE_9oyEVmxZxctRGyuPlGq6WDA5blxO6V5mTA/exec'
             };
 
@@ -1451,18 +1617,50 @@
             const adminLoginError = document.getElementById('adminLoginError');
             const adminLogoutBtn = document.getElementById('adminLogoutBtn');
             const adminStateLabel = document.getElementById('adminStateLabel');
-            const minRangeSlider = document.getElementById('minRangeSlider');
-            const maxRangeSlider = document.getElementById('maxRangeSlider');
-            const minRangeVal = document.getElementById('minRangeVal');
-            const maxRangeVal = document.getElementById('maxRangeVal');
-            const speedSlider = document.getElementById('speedSlider');
-            const speedVal = document.getElementById('speedVal');
-            const applyRangeBtn = document.getElementById('applyRangeBtn');
-            const applySpeedBtn = document.getElementById('applySpeedBtn');
             const manualStatus = document.getElementById('manualStatus');
             const mqttDot = document.getElementById('mqttDot');
             const mqttLabel = document.getElementById('mqttLabel');
             const resetRobotBtn = document.getElementById('resetRobotBtn');
+            const configLoadStatus = document.getElementById('configLoadStatus');
+            const refreshConfigBtn = document.getElementById('refreshConfigBtn');
+
+            // Config controls
+            const minRangeSlider = document.getElementById('minRangeSlider');
+            const maxRangeSlider = document.getElementById('maxRangeSlider');
+            const minRangeVal = document.getElementById('minRangeVal');
+            const maxRangeVal = document.getElementById('maxRangeVal');
+            const applyRangeBtn = document.getElementById('applyRangeBtn');
+
+            const angleMinInput = document.getElementById('angleMinInput');
+            const angleMaxInput = document.getElementById('angleMaxInput');
+            const applyAngleBtn = document.getElementById('applyAngleBtn');
+
+            const sensitivitySlider = document.getElementById('sensitivitySlider');
+            const sensitivityVal = document.getElementById('sensitivityVal');
+            const applySensitivityBtn = document.getElementById('applySensitivityBtn');
+
+            const minSamplesInput = document.getElementById('minSamplesInput');
+            const applyMinSamplesBtn = document.getElementById('applyMinSamplesBtn');
+
+            const movementThresholdSlider = document.getElementById('movementThresholdSlider');
+            const movementThresholdVal = document.getElementById('movementThresholdVal');
+            const applyMovementThresholdBtn = document.getElementById('applyMovementThresholdBtn');
+
+            const speedSlider = document.getElementById('speedSlider');
+            const speedVal = document.getElementById('speedVal');
+            const applySpeedBtn = document.getElementById('applySpeedBtn');
+
+            const arrivalDistanceSlider = document.getElementById('arrivalDistanceSlider');
+            const arrivalDistanceVal = document.getElementById('arrivalDistanceVal');
+            const applyArrivalDistanceBtn = document.getElementById('applyArrivalDistanceBtn');
+
+            const maxStaticFramesInput = document.getElementById('maxStaticFramesInput');
+            const applyMaxStaticFramesBtn = document.getElementById('applyMaxStaticFramesBtn');
+
+            const minDetectionsInput = document.getElementById('minDetectionsInput');
+            const applyMinDetectionsBtn = document.getElementById('applyMinDetectionsBtn');
+
+            const saveAllConfigBtn = document.getElementById('saveAllConfigBtn');
 
             // Artifact management refs
             const artifactTableBody = document.getElementById('artifactTableBody');
@@ -1579,7 +1777,7 @@
             // ==========================================
             async function fetchSensorHistory() {
                 try {
-                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getSensorData');
+                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getSensorData&_=' + Date.now());
                     const data = await res.json();
                     if (data.error) { console.error('Sensor history error:', data.error); return; }
                     const rows = data.data || [];
@@ -1604,7 +1802,7 @@
 
             async function fetchArtifactScans() {
                 try {
-                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getArtifactScans');
+                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getArtifactScans&_=' + Date.now());
                     const data = await res.json();
                     if (data.error) { console.error('Scan data error:', data.error); return; }
                     const scans = data.scans || [];
@@ -1627,7 +1825,7 @@
             // ==========================================
             async function loadAlarms() {
                 try {
-                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getAlarms');
+                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getAlarms&_=' + Date.now());
                     const data = await res.json();
                     if (data.error) {
                         alarmTableBody.innerHTML =
@@ -1668,7 +1866,7 @@
             async function acknowledgeAlarm(index) {
                 try {
                     const res = await fetch(CONFIG.sheetApiUrl +
-                        `?action=acknowledgeAlarm&id=${encodeURIComponent(index)}`, { method: 'GET' });
+                        `?action=acknowledgeAlarm&id=${encodeURIComponent(index)}&_=${Date.now()}`, { method: 'GET' });
                     const data = await res.json();
                     if (data.error) { alert('Acknowledge error: ' + data.error); return; }
                     loadAlarms();
@@ -1680,7 +1878,7 @@
             // ==========================================
             async function loadMovementLogs() {
                 try {
-                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getPositionLogs');
+                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getPositionLogs&_=' + Date.now());
                     const data = await res.json();
                     if (data.error) {
                         movementTableBody.innerHTML =
@@ -1713,15 +1911,17 @@
             // ==========================================
             // LOAD CONFIG FROM GOOGLE SHEETS
             // ==========================================
-            async function loadConfigFromSheets() {
+            async function loadConfigFromSheets(retries = 3) {
                 try {
-                    const response = await fetch(CONFIG.sheetApiUrl + '?action=getConfig');
+                    configLoadStatus.textContent = '🔄 Loading config...';
+                    const url = CONFIG.sheetApiUrl + '?action=getConfig&_=' + Date.now();
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
                     const data = await response.json();
-                    if (data.error) {
-                        console.warn('Config load error:', data.error);
-                        return;
-                    }
+                    if (data.error) throw new Error(data.error);
                     const config = data.config || {};
+
+                    // Populate UI controls
                     if (config.min_range !== undefined) {
                         const val = parseFloat(config.min_range);
                         minRangeSlider.value = val;
@@ -1732,14 +1932,51 @@
                         maxRangeSlider.value = val;
                         maxRangeVal.textContent = val.toFixed(1);
                     }
+                    if (config.angle_min !== undefined) {
+                        angleMinInput.value = config.angle_min;
+                    }
+                    if (config.angle_max !== undefined) {
+                        angleMaxInput.value = config.angle_max;
+                    }
+                    if (config.sensitivity !== undefined) {
+                        const val = parseFloat(config.sensitivity);
+                        sensitivitySlider.value = val;
+                        sensitivityVal.textContent = val.toFixed(2);
+                    }
+                    if (config.min_samples !== undefined) {
+                        minSamplesInput.value = parseInt(config.min_samples);
+                    }
+                    if (config.movement_threshold !== undefined) {
+                        const val = parseFloat(config.movement_threshold);
+                        movementThresholdSlider.value = val;
+                        movementThresholdVal.textContent = val.toFixed(2);
+                    }
                     if (config.max_speed !== undefined) {
                         const val = parseFloat(config.max_speed);
                         speedSlider.value = val;
                         speedVal.textContent = val.toFixed(2);
                     }
+                    if (config.arrival_distance !== undefined) {
+                        const val = parseFloat(config.arrival_distance);
+                        arrivalDistanceSlider.value = val;
+                        arrivalDistanceVal.textContent = val.toFixed(1);
+                    }
+                    if (config.max_static_frames !== undefined) {
+                        maxStaticFramesInput.value = parseInt(config.max_static_frames);
+                    }
+                    if (config.min_detections !== undefined) {
+                        minDetectionsInput.value = parseInt(config.min_detections);
+                    }
+
+                    configLoadStatus.textContent = '✅ Config loaded';
                     console.log('✅ Config loaded from Google Sheets');
                 } catch (e) {
                     console.warn('Failed to load config:', e);
+                    configLoadStatus.textContent = '⚠️ Config load failed';
+                    if (retries > 0) {
+                        setTimeout(() => loadConfigFromSheets(retries - 1), 2000);
+                        configLoadStatus.textContent = '🔄 Retrying...';
+                    }
                 }
             }
 
@@ -1769,13 +2006,52 @@
             }
 
             // ==========================================
-            // ARTIFACT MANAGEMENT (CRUD)
+            // SAVE ALL CONFIG
+            // ==========================================
+            async function saveAllConfig() {
+                const config = {
+                    min_range: parseFloat(minRangeSlider.value),
+                    max_range: parseFloat(maxRangeSlider.value),
+                    angle_min: parseInt(angleMinInput.value),
+                    angle_max: parseInt(angleMaxInput.value),
+                    sensitivity: parseFloat(sensitivitySlider.value),
+                    min_samples: parseInt(minSamplesInput.value),
+                    movement_threshold: parseFloat(movementThresholdSlider.value),
+                    max_speed: parseFloat(speedSlider.value),
+                    arrival_distance: parseFloat(arrivalDistanceSlider.value),
+                    max_static_frames: parseInt(maxStaticFramesInput.value),
+                    min_detections: parseInt(minDetectionsInput.value)
+                };
+
+                try {
+                    const formData = new URLSearchParams();
+                    formData.append('action', 'updateConfigBatch');
+                    formData.append('config', JSON.stringify(config));
+                    const response = await fetch(CONFIG.sheetApiUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                    });
+                    const data = await response.json();
+                    if (data.error) {
+                        alert('Save error: ' + data.error);
+                    } else {
+                        alert('✅ All configuration saved to Google Sheets');
+                        loadConfigFromSheets(); // Refresh UI
+                    }
+                } catch (e) {
+                    alert('Save failed: ' + e);
+                }
+            }
+
+            // ==========================================
+            // ARTIFACT MANAGEMENT
             // ==========================================
             let editingArtifactId = null;
 
             async function loadArtifactTable() {
                 try {
-                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getArtifacts');
+                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getArtifacts&_=' + Date.now());
                     const data = await res.json();
                     if (data.error) {
                         artifactTableBody.innerHTML =
@@ -1825,7 +2101,7 @@
             }
 
             function editArtifact(id) {
-                fetch(CONFIG.sheetApiUrl + `?action=getArtifact&id=${encodeURIComponent(id)}`)
+                fetch(CONFIG.sheetApiUrl + `?action=getArtifact&id=${encodeURIComponent(id)}&_=${Date.now()}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data.error) { alert('Error: ' + data.error); return; }
@@ -2242,28 +2518,74 @@
             });
 
             // ==========================================
-            // CONFIGURATION CONTROLS (UPDATED)
+            // CONFIGURATION CONTROLS
             // ==========================================
+
+            // Helper to update a single config param and show feedback
+            function updateSingleConfig(param, value, btnElement) {
+                // Update Google Sheets
+                updateConfigInSheets(param, value);
+                // Provide visual feedback
+                const originalText = btnElement.textContent;
+                btnElement.textContent = '✅ Saved';
+                btnElement.style.borderColor = '#4ecdc4';
+                setTimeout(() => {
+                    btnElement.textContent = originalText;
+                    btnElement.style.borderColor = '';
+                }, 2000);
+            }
+
+            // Slider listeners for real-time display
             minRangeSlider.addEventListener('input', function() { minRangeVal.textContent = parseFloat(this.value)
                     .toFixed(1); });
             maxRangeSlider.addEventListener('input', function() { maxRangeVal.textContent = parseFloat(this.value)
                     .toFixed(1); });
+            sensitivitySlider.addEventListener('input', function() { sensitivityVal.textContent = parseFloat(this.value)
+                    .toFixed(2); });
+            movementThresholdSlider.addEventListener('input', function() { movementThresholdVal.textContent = parseFloat(this
+                    .value).toFixed(2); });
             speedSlider.addEventListener('input', function() { speedVal.textContent = parseFloat(this.value)
                 .toFixed(2); });
+            arrivalDistanceSlider.addEventListener('input', function() { arrivalDistanceVal.textContent = parseFloat(this
+                    .value).toFixed(1); });
 
-            // Apply Range – sends MQTT + updates Google Sheets
+            // Apply Buttons - each updates Google Sheets
             applyRangeBtn.addEventListener('click', function() {
                 const min = parseFloat(minRangeSlider.value);
                 const max = parseFloat(maxRangeSlider.value);
-                // Update robot via MQTT
-                publishMqtt('museum/admin/range', { min: min, max: max });
-                // Update Google Sheets for persistence
+                publishMqtt('museum/admin/range', { min: min, max: max }); // MQTT real-time update
                 updateConfigInSheets('min_range', min);
                 updateConfigInSheets('max_range', max);
                 alert(`✅ Detection range set to ${min}m - ${max}m`);
             });
 
-            // Apply Speed – sends MQTT + updates Google Sheets
+            applyAngleBtn.addEventListener('click', function() {
+                const min = parseInt(angleMinInput.value);
+                const max = parseInt(angleMaxInput.value);
+                if (min >= max) { alert('Min angle must be less than max angle.'); return; }
+                updateConfigInSheets('angle_min', min);
+                updateConfigInSheets('angle_max', max);
+                alert(`✅ Detection angle set to ${min}° - ${max}°`);
+            });
+
+            applySensitivityBtn.addEventListener('click', function() {
+                const val = parseFloat(sensitivitySlider.value);
+                updateConfigInSheets('sensitivity', val);
+                alert(`✅ Sensitivity set to ${val}`);
+            });
+
+            applyMinSamplesBtn.addEventListener('click', function() {
+                const val = parseInt(minSamplesInput.value);
+                updateConfigInSheets('min_samples', val);
+                alert(`✅ Min samples set to ${val}`);
+            });
+
+            applyMovementThresholdBtn.addEventListener('click', function() {
+                const val = parseFloat(movementThresholdSlider.value);
+                updateConfigInSheets('movement_threshold', val);
+                alert(`✅ Movement threshold set to ${val}`);
+            });
+
             applySpeedBtn.addEventListener('click', function() {
                 const speed = parseFloat(speedSlider.value);
                 publishMqtt('museum/admin/speed', { speed: speed });
@@ -2271,7 +2593,28 @@
                 alert(`✅ Movement speed set to ${speed.toFixed(2)} m/s`);
             });
 
-            // Reset Robot (moved to manual control, page does NOT refresh)
+            applyArrivalDistanceBtn.addEventListener('click', function() {
+                const val = parseFloat(arrivalDistanceSlider.value);
+                updateConfigInSheets('arrival_distance', val);
+                alert(`✅ Arrival distance set to ${val} m`);
+            });
+
+            applyMaxStaticFramesBtn.addEventListener('click', function() {
+                const val = parseInt(maxStaticFramesInput.value);
+                updateConfigInSheets('max_static_frames', val);
+                alert(`✅ Static frames set to ${val}`);
+            });
+
+            applyMinDetectionsBtn.addEventListener('click', function() {
+                const val = parseInt(minDetectionsInput.value);
+                updateConfigInSheets('min_detections', val);
+                alert(`✅ Min detections set to ${val}`);
+            });
+
+            // Save All Config
+            saveAllConfigBtn.addEventListener('click', saveAllConfig);
+
+            // Reset Robot (moved to manual control, no page refresh)
             resetRobotBtn.addEventListener('click', function() {
                 if (confirm('Reset robot to idle state?')) {
                     publishMqtt('museum/admin/reset', { action: 'reset' });
@@ -2322,26 +2665,85 @@
             });
 
             // ==========================================
-            // DEMO MODE
+            // DEMO MODE – with fallback to hardcoded artifacts
             // ==========================================
             let demoArtifacts = [];
             let demoState = 'idle';
             let demoStep = 0;
 
+            // Hardcoded fallback artifacts
+            const DEFAULT_ARTIFACTS = [{
+                id: 'vase',
+                name: 'Ancient Ming Vase',
+                origin: 'China',
+                year: '15th Century',
+                material: 'Porcelain',
+                emoji: '🏺',
+                description: 'Exquisite porcelain vase from the Ming Dynasty (1368-1644).',
+                description_ms: 'Pasu porselin yang indah dari Dinasti Ming (1368-1644).',
+                description_fr: 'Vase en porcelaine exquis de la dynastie Ming (1368-1644).',
+                year_ms: 'Abad ke-15',
+                year_fr: '15ème siècle',
+                origin_ms: 'China',
+                origin_fr: 'Chine',
+                material_ms: 'Porselin',
+                material_fr: 'Porcelaine'
+            }, {
+                id: 'bronze',
+                name: 'Roman Bronze Sculpture',
+                origin: 'Roman Empire',
+                year: '100 AD',
+                material: 'Bronze',
+                emoji: '🗿',
+                description: 'Magnificent bronze sculpture of a Roman warrior.',
+                description_ms: 'Patung gangsa yang megah seorang pahlawan Rom.',
+                description_fr: 'Magnifique sculpture en bronze d\'un guerrier romain.',
+                year_ms: '100 Masihi',
+                year_fr: '100 après J.-C.',
+                origin_ms: 'Empayar Rom',
+                origin_fr: 'Empire romain',
+                material_ms: 'Gangsa',
+                material_fr: 'Bronze'
+            }, {
+                id: 'coins',
+                name: 'Ancient Coin Collection',
+                origin: 'Multiple Civilizations',
+                year: '500 BC - 100 AD',
+                material: 'Various Metals',
+                emoji: '🪙',
+                description: 'Rare collection of 25 coins from ancient civilizations.',
+                description_ms: 'Koleksi jarang 25 syiling dari tamadun purba.',
+                description_fr: 'Rare collection de 25 pièces de civilisations anciennes.',
+                year_ms: '500 SM - 100 Masihi',
+                year_fr: '500 av. J.-C. - 100 après J.-C.',
+                origin_ms: 'Pelbagai Tamadun',
+                origin_fr: 'Civilisations multiples',
+                material_ms: 'Pelbagai Logam',
+                material_fr: 'Métaux variés'
+            }];
+
             async function loadDemoArtifacts() {
                 try {
-                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getArtifacts');
+                    const res = await fetch(CONFIG.sheetApiUrl + '?action=getArtifacts&_=' + Date.now());
                     const data = await res.json();
                     if (data.error) {
                         console.warn('Demo artifact load error:', data.error);
+                        // Use fallback
+                        demoArtifacts = DEFAULT_ARTIFACTS;
+                        console.log('Using default artifacts for demo');
                         return;
                     }
-                    demoArtifacts = data.artifacts || [];
-                    if (demoArtifacts.length === 0) {
-                        console.warn('No artifacts found for demo mode.');
+                    const artifacts = data.artifacts || [];
+                    if (artifacts.length === 0) {
+                        console.warn('No artifacts found in Google Sheets. Using default artifacts.');
+                        demoArtifacts = DEFAULT_ARTIFACTS;
+                    } else {
+                        demoArtifacts = artifacts;
                     }
                 } catch (e) {
                     console.warn('Failed to load demo artifacts:', e);
+                    demoArtifacts = DEFAULT_ARTIFACTS;
+                    console.log('Using default artifacts for demo');
                 }
             }
 
@@ -2353,7 +2755,7 @@
             function startDemo() {
                 if (demoMode) return;
                 if (demoArtifacts.length === 0) {
-                    alert('No artifacts loaded from Google Sheets. Please check your database.');
+                    alert('No artifacts available for demo. Please check your database or refresh the page.');
                     return;
                 }
                 demoMode = true;
@@ -2445,6 +2847,15 @@
             });
 
             // ==========================================
+            // CONFIG REFRESH BUTTON
+            // ==========================================
+            refreshConfigBtn.addEventListener('click', function() {
+                loadConfigFromSheets();
+                this.textContent = '🔄 Loading...';
+                setTimeout(() => { this.textContent = '🔄 Refresh Config'; }, 3000);
+            });
+
+            // ==========================================
             // PUBLISH MQTT
             // ==========================================
             function publishMqtt(topic, data) {
@@ -2527,14 +2938,17 @@
             // Load config from Google Sheets
             loadConfigFromSheets();
 
-            // Load demo artifacts from Google Sheets
+            // Load demo artifacts from Google Sheets (with fallback)
             loadDemoArtifacts();
 
             // Fetch charts
             fetchSensorHistory();
             fetchArtifactScans();
 
-            // Auto-refresh
+            // Auto-refresh config every 30 seconds
+            setInterval(loadConfigFromSheets, 30000);
+
+            // Auto-refresh other data
             setInterval(fetchSensorHistory, 15000);
             setInterval(fetchArtifactScans, 30000);
             setInterval(refreshLogs, 15000);
