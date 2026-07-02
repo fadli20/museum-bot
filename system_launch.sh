@@ -7,6 +7,7 @@ echo "This will launch:"
 echo "  ✅ LiDAR (RPLIDAR A1)"
 echo "  ✅ SLAM (slam_toolbox)"
 echo "  ✅ RViz (with all markers: people, crowds, barrier)"
+echo "  ✅ Motor Driver (xy160d_driver.py)"
 echo "  ✅ Autonomous Viewer (merged guide + web interface)"
 echo ""
 echo "============================================"
@@ -20,6 +21,7 @@ pkill -f "slam_toolbox" 2>/dev/null
 pkill -f "rviz2" 2>/dev/null
 pkill -f "museum_guide_mqtt" 2>/dev/null
 pkill -f "autonomous_view" 2>/dev/null
+pkill -f "xy160d_driver" 2>/dev/null
 pkill -f "static_transform_publisher" 2>/dev/null
 pkill -f "fake_odom" 2>/dev/null
 sleep 2
@@ -43,15 +45,28 @@ SLAM_PID=$!
 echo "⏳ Waiting for LiDAR and SLAM to initialize (15 sec)..."
 sleep 15
 
-# Start the autonomous viewer (merged guide + web UI)
+echo ""
+echo "🛞 Starting Motor Driver (xy160d_driver.py)..."
+echo ""
+
+# Start the motor driver in the background
+ros2 run mecanum_robot xy160d_driver.py &
+DRIVER_PID=$!
+
+# Give the driver time to initialise
+sleep 3
+
 echo ""
 echo "🤖 Starting Autonomous Viewer (guide + web interface)..."
 echo ""
+
+# Start the autonomous viewer (this will block until Ctrl+C)
 python3 autonomous_view.py
 
 # When the script stops (e.g., Ctrl+C), cleanup
 echo ""
 echo "🧹 Cleaning up..."
+kill $DRIVER_PID 2>/dev/null
 kill $SLAM_PID 2>/dev/null
 pkill -f "sllidar_node" 2>/dev/null
 pkill -f "slam_toolbox" 2>/dev/null
