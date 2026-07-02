@@ -19,9 +19,9 @@ import sys
 # Motor configuration
 MOTORS = {
     1: {'name': 'Front Left',  'in1': 17, 'in2': 27, 'en': 22},
-    2: {'name': 'Front Right', 'in1': 23, 'in2': 24, 'en': 25},
-    3: {'name': 'Rear Left',   'in1': 5,  'in2': 6,  'en': 13},
-    4: {'name': 'Rear Right',  'in1': 19, 'in2': 26, 'en': 16},
+    2: {'name': 'Front Right', 'in1': 24, 'in2': 25, 'en': 23},
+    3: {'name': 'Rear Left',   'in1': 5,  'in2': 6,  'en': 12},
+    4: {'name': 'Rear Right',  'in1': 19, 'in2': 26, 'en': 13},
 }
 
 PWM_FREQ = 1000      # 1 kHz
